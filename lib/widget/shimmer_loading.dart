@@ -94,7 +94,7 @@ class _SlidingGradientTransform extends GradientTransform {
 class ShimmerLoading extends StatefulWidget {
   const ShimmerLoading({
     Key? key,
-    required this.isLoading,
+    this.isLoading = true,
     required this.child,
   }) : super(key: key);
 

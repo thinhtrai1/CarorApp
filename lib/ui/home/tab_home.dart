@@ -9,6 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
+import '../../widget/widget.dart';
+
 class HomeTab extends StatefulWidget {
   const HomeTab({Key? key}) : super(key: key);
 
@@ -20,17 +22,18 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
   var _isInitial = true;
   var _currentPage = 0;
   var _isLoadMore = false;
-  final _chips = ['Featured Items', 'Trending', 'Most recent', 'Favourite', 'New'];
+  final _chips = ['Featured Items', 'Trending', 'Favourite', 'New', 'Most recent'];
   final _products = List<Product>.empty(growable: true);
-  final _controller = ScrollController();
+  final _scrollController = ScrollController();
   late final _tabController = TabController(length: _chips.length, vsync: this);
   late final _refreshIconController = AnimationController(duration: const Duration(milliseconds: 500), vsync: this)..repeat();
+  List<Product>? _favourites;
 
   @override
   void initState() {
     _getProducts(true);
-    _controller.addListener(() {
-      if (_isLoadMore && _controller.position.extentAfter < 300) {
+    _scrollController.addListener(() {
+      if (_isLoadMore && _scrollController.position.extentAfter < 300) {
         _isLoadMore = false;
         _getProducts(false);
       }
@@ -40,7 +43,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    _controller.dispose();
+    _scrollController.dispose();
     _tabController.dispose();
     _refreshIconController.dispose();
     super.dispose();
@@ -55,6 +58,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
         if (isFirstPage) {
           _products.clear();
         }
+        _favourites ??= List.generate(5, (index) => response.data[Random().nextInt(response.data.length)]);
         setState(() {
           _products.addAll(response.data);
         });
@@ -72,11 +76,11 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
           child: TabBarView(
             controller: _tabController,
             children: [
-              _buildContentView(_buildListView0()),
-              _buildContentView(_buildListView1()),
-              _buildContentView(_buildListView2()),
-              _buildContentView(_buildListView0()),
-              _buildContentView(_buildListView0()),
+              _buildContentView(_buildListViewFeature(), _scrollController),
+              _buildContentView(_buildListViewTrending(), _scrollController),
+              _buildContentView(_ListViewFavourites(favourites: _favourites), null),
+              _buildContentView(_buildListViewRecent(), _scrollController),
+              _buildContentView(_buildListViewFeature(), _scrollController),
             ],
           ),
         ),
@@ -85,6 +89,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
   }
 
   _buildChipListView() {
+    //TODO: #HOW TO scroll selected item to center
     return SizedBox(
       height: 48,
       child: ListView.separated(
@@ -142,65 +147,68 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
     );
   }
 
-  _buildContentView(Widget sliverChild) {
+  _buildContentView(Widget sliverChild, ScrollController? controller) {
     return Shimmer(
       linearGradient: Shimmer.shimmerGradient,
       child: CustomScrollView(
-        controller: _controller,
+        controller: controller,
         physics: const BouncingScrollPhysics(
           parent: AlwaysScrollableScrollPhysics(),
         ),
         slivers: [
-          CupertinoSliverRefreshControl(
-            onRefresh: () async {
-              _getProducts(true);
-              await Future<void>.delayed(
-                const Duration(milliseconds: 1000),
-              );
-            },
-            builder: (c, refreshState, pulledExtent, d, e) {
-              return Stack(
-                clipBehavior: Clip.none,
-                children: <Widget>[
-                  Positioned(
-                    bottom: pulledExtent / 4,
-                    left: 0.0,
-                    right: 0.0,
-                    child: refreshState == RefreshIndicatorMode.drag
-                        ? Column(
-                            children: [
-                              const Text('Pulling to refresh...'),
-                              AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 300),
-                                transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
-                                child: const Icon(Icons.arrow_circle_down_rounded, key: ValueKey('icon1')),
-                              ),
-                            ],
-                          )
-                        : Column(
-                            children: [
-                              const Text('Refreshing...'),
-                              AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 300),
-                                transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
-                                child: AnimatedBuilder(
-                                  animation: _refreshIconController,
-                                  builder: (_, child) {
-                                    return Transform.rotate(
-                                      angle: _refreshIconController.value * 2 * pi,
-                                      child: child,
-                                    );
-                                  },
-                                  child: const Icon(Icons.cached_rounded, key: ValueKey('icon2')),
+          if (!_isInitial)
+            CupertinoSliverRefreshControl(
+              onRefresh: () async {
+                _getProducts(true);
+                await Future<void>.delayed(
+                  const Duration(milliseconds: 1000),
+                );
+              },
+              builder: (c, refreshState, pulledExtent, d, e) {
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: <Widget>[
+                    Positioned(
+                      bottom: pulledExtent / 7,
+                      left: 0.0,
+                      right: 0.0,
+                      child: refreshState == RefreshIndicatorMode.drag
+                          ? Column(
+                              children: [
+                                const Text('Pulling to refresh...'),
+                                SizedBox(height: max(0, pulledExtent / 5 - 7)),
+                                AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 300),
+                                  transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
+                                  child: const Icon(Icons.arrow_circle_down_rounded, key: ValueKey('icon1')),
                                 ),
-                              ),
-                            ],
-                          ),
-                  ),
-                ],
-              );
-            },
-          ),
+                              ],
+                            )
+                          : Column(
+                              children: [
+                                const Text('Refreshing...'),
+                                SizedBox(height: max(0, pulledExtent / 5 - 7)),
+                                AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 300),
+                                  transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
+                                  child: AnimatedBuilder(
+                                    animation: _refreshIconController,
+                                    builder: (_, child) {
+                                      return Transform.rotate(
+                                        angle: _refreshIconController.value * 2 * pi,
+                                        child: child,
+                                      );
+                                    },
+                                    child: const Icon(Icons.cached_rounded, key: ValueKey('icon2')),
+                                  ),
+                                ),
+                              ],
+                            ),
+                    ),
+                  ],
+                );
+              },
+            ),
           sliverChild,
           const SliverToBoxAdapter(
             child: SizedBox(
@@ -216,39 +224,29 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
     return _products.length + (_isInitial || _isLoadMore ? 5 : 0);
   }
 
-  _buildListView0() {
+  _buildListViewFeature() {
     return SliverList(
       delegate: SliverChildBuilderDelegate(
         (context, index) {
-          return index > _products.length - 1
-              ? const ShimmerLoading(
-                  isLoading: true,
-                  child: _ProductShimmerItem(),
-                )
-              : _ProductItem(_products[index]);
+          return index > _products.length - 1 ? const ShimmerLoading(child: _ProductShimmerItem()) : _ProductItem(_products[index]);
         },
         childCount: _getItemCount(),
       ),
     );
   }
 
-  _buildListView1() {
+  _buildListViewTrending() {
     return SliverList(
       delegate: SliverChildBuilderDelegate(
         (context, index) {
-          return index > _products.length - 1
-              ? const ShimmerLoading(
-                  isLoading: true,
-                  child: _ProductShimmerItem(),
-                )
-              : _ParallaxListItem(_products[index]);
+          return index > _products.length - 1 ? const ShimmerLoading(child: _ProductShimmerItem()) : _ParallaxItem(_products[index]);
         },
         childCount: _getItemCount(),
       ),
     );
   }
 
-  _buildListView2() {
+  _buildListViewRecent() {
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       sliver: SliverStaggeredGrid.countBuilder(
@@ -258,20 +256,85 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
         staggeredTileBuilder: (i) => const StaggeredTile.fit(1),
         itemCount: _getItemCount(),
         itemBuilder: (context, index) {
-          return index > _products.length - 1
-              ? const ShimmerLoading(
-                  isLoading: true,
-                  child: _GridShimmerItem(),
-                )
-              : _StaggeredGridItem(_products[index]);
+          return index > _products.length - 1 ? const ShimmerLoading(child: _GridShimmerItem()) : _StaggeredGridItem(_products[index]);
         },
       ),
     );
   }
 }
 
-class _ParallaxListItem extends StatelessWidget {
-  _ParallaxListItem(this.product, {Key? key}) : super(key: key);
+class _ListViewFavourites extends StatefulWidget {
+  const _ListViewFavourites({Key? key, required this.favourites}) : super(key: key);
+
+  final List<Product>? favourites;
+
+  @override
+  State<StatefulWidget> createState() => _ListViewFavouritesState();
+}
+
+class _ListViewFavouritesState extends State<_ListViewFavourites> with TickerProviderStateMixin {
+  final listKey = GlobalKey<SliverAnimatedListState>();
+  int expandedPosition = -1;
+  late final controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 400),
+    reverseDuration: const Duration(milliseconds: 400),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final isLoading = widget.favourites == null;
+    return SliverAnimatedList(
+      key: listKey,
+      initialItemCount: widget.favourites?.length ?? 5,
+      itemBuilder: (_, index, animation) {
+        return Stack(
+          children: [
+            if (isLoading) const ShimmerLoading(child: _ProductShimmerItem()),
+            AnimatedOpacity(
+              duration: const Duration(milliseconds: 500),
+              opacity: isLoading ? 0 : 1,
+              child: isLoading ? const SizedBox() : _buildFavouriteItem(index, widget.favourites![index]),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildFavouriteItem(int index, Product item) {
+    return Stack(
+      children: [
+        _ProductItem(item, isExpanded: expandedPosition == index),
+        Positioned(
+          bottom: 0,
+          right: 16,
+          child: CommonIcon(Icons.delete_rounded, padding: 12, onPressed: () {
+            expandedPosition = -1;
+            widget.favourites!.removeAt(index);
+            listKey.currentState!.removeItem(index, (_, animation) => SizeTransition(sizeFactor: animation, child: _buildFavouriteItem(index, item)));
+          }),
+        ),
+        Positioned(
+          bottom: 0,
+          right: 60,
+          child: AnimatedRotation(
+            turns: expandedPosition == index ? 0.5 : 0,
+            duration: const Duration(milliseconds: 300),
+            child: CommonIcon(Icons.expand_more_rounded, padding: 12, onPressed: () {
+              setState(() {
+                expandedPosition = expandedPosition == index ? -1 : index;
+              });
+            }),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ParallaxItem extends StatelessWidget {
+  _ParallaxItem(this.product, {Key? key}) : super(key: key);
 
   final Product product;
   final GlobalKey _backgroundImageKey = GlobalKey();
@@ -394,9 +457,10 @@ class _ParallaxFlowDelegate extends FlowDelegate {
 }
 
 class _ProductItem extends StatelessWidget {
-  const _ProductItem(this.product) : super();
+  const _ProductItem(this.product, {this.isExpanded = false}) : super();
 
   final Product product;
+  final bool isExpanded;
 
   @override
   Widget build(BuildContext context) {
@@ -439,6 +503,20 @@ class _ProductItem extends StatelessWidget {
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
+                      ),
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeInOut,
+                        padding: isExpanded ? const EdgeInsets.only(top: 8, bottom: 16) : EdgeInsets.zero,
+                        child: isExpanded
+                            ? Text(
+                                product.description,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              )
+                            : const SizedBox(),
                       ),
                       const Spacer(),
                       Text(

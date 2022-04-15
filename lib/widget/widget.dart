@@ -28,19 +28,17 @@ class SimpleProgressBar extends Center {
         );
 }
 
-class CommonBackIcon extends Material {
-  CommonBackIcon(GestureTapCallback? onCLick, {Key? key})
+class CommonIcon extends Material {
+  CommonIcon(IconData icon, {Key? key, double padding = 20, GestureTapCallback? onPressed})
       : super(
           key: key,
+          color: Colors.transparent,
           child: InkWell(
             customBorder: const CircleBorder(),
-            onTap: onCLick,
-            child: const Padding(
-              padding: EdgeInsets.all(20.0),
-              child: Icon(
-                Icons.arrow_back,
-                color: Colors.black,
-              ),
+            onTap: onPressed,
+            child: Padding(
+              padding: EdgeInsets.all(padding),
+              child: Icon(icon),
             ),
           ),
         );
