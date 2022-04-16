@@ -2,7 +2,9 @@ import 'dart:math';
 
 import 'package:caror/data/DataService.dart';
 import 'package:caror/entity/Product.dart';
+import 'package:caror/themes/AppTheme.dart';
 import 'package:caror/themes/Number.dart';
+import 'package:caror/widget/parallax.dart';
 import 'package:caror/widget/shimmer_loading.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -33,7 +35,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
   void initState() {
     _getProducts(true);
     _scrollController.addListener(() {
-      if (_isLoadMore && _scrollController.position.extentAfter < 300) {
+      if (_isLoadMore && _scrollController.position.extentAfter < 600) {
         _isLoadMore = false;
         _getProducts(false);
       }
@@ -58,7 +60,11 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
         if (isFirstPage) {
           _products.clear();
         }
-        _favourites ??= List.generate(5, (index) => response.data[Random().nextInt(response.data.length)]);
+        if (_favourites == null) {
+          final start = Random().nextInt(response.data.length ~/ 2);
+          final end = start + Random().nextInt(response.data.length - start);
+          _favourites = response.data.sublist(start, end + 1);
+        }
         setState(() {
           _products.addAll(response.data);
         });
@@ -76,11 +82,11 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
           child: TabBarView(
             controller: _tabController,
             children: [
-              _buildContentView(_buildListViewFeature(), _scrollController),
+              _buildContentView(_ListViewFeature(_products, _isShimmerIndex), _scrollController, sliverChild2: _buildListViewFeature3()),
               _buildContentView(_buildListViewTrending(), _scrollController),
               _buildContentView(_ListViewFavourites(favourites: _favourites), null),
+              _buildContentView(_buildListViewNew(), _scrollController),
               _buildContentView(_buildListViewRecent(), _scrollController),
-              _buildContentView(_buildListViewFeature(), _scrollController),
             ],
           ),
         ),
@@ -89,7 +95,8 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
   }
 
   _buildChipListView() {
-    //TODO: #HOW TO scroll selected item to center
+    //TODO: #HOWTO Scroll selected item to center
+    //TODO: #HOWTO Update state when page change (avoid setSate())
     return SizedBox(
       height: 48,
       child: ListView.separated(
@@ -147,7 +154,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
     );
   }
 
-  _buildContentView(Widget sliverChild, ScrollController? controller) {
+  _buildContentView(Widget sliverChild, ScrollController? controller, {Widget? sliverChild2}) {
     return Shimmer(
       linearGradient: Shimmer.shimmerGradient,
       child: CustomScrollView(
@@ -210,6 +217,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
               },
             ),
           sliverChild,
+          if (sliverChild2 != null) sliverChild2,
           const SliverToBoxAdapter(
             child: SizedBox(
               height: 16,
@@ -220,15 +228,15 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
     );
   }
 
-  _getItemCount() {
-    return _products.length + (_isInitial || _isLoadMore ? 5 : 0);
-  }
+  int _getItemCount() => _products.length + (_isInitial || _isLoadMore ? shimmerItemCount : 0);
 
-  _buildListViewFeature() {
+  bool _isShimmerIndex(int index) => index > _products.length - 1;
+
+  _buildListViewFeature3() {
     return SliverList(
       delegate: SliverChildBuilderDelegate(
         (context, index) {
-          return index > _products.length - 1 ? const ShimmerLoading(child: _ProductShimmerItem()) : _ProductItem(_products[index]);
+          return _isShimmerIndex(index) ? const ShimmerLoading(child: _ProductShimmerItem()) : _RecentItem(_products[index]);
         },
         childCount: _getItemCount(),
       ),
@@ -239,14 +247,14 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
     return SliverList(
       delegate: SliverChildBuilderDelegate(
         (context, index) {
-          return index > _products.length - 1 ? const ShimmerLoading(child: _ProductShimmerItem()) : _ParallaxItem(_products[index]);
+          return _isShimmerIndex(index) ? const ShimmerLoading(child: _TrendingShimmerItem(marginHorizontal: 16)) : _TrendingItem(_products[index]);
         },
         childCount: _getItemCount(),
       ),
     );
   }
 
-  _buildListViewRecent() {
+  _buildListViewNew() {
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       sliver: SliverStaggeredGrid.countBuilder(
@@ -256,8 +264,242 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
         staggeredTileBuilder: (i) => const StaggeredTile.fit(1),
         itemCount: _getItemCount(),
         itemBuilder: (context, index) {
-          return index > _products.length - 1 ? const ShimmerLoading(child: _GridShimmerItem()) : _StaggeredGridItem(_products[index]);
+          return _isShimmerIndex(index) ? const ShimmerLoading(child: _TrendingShimmerItem()) : _NewItem(_products[index]);
         },
+      ),
+    );
+  }
+
+  _buildListViewRecent() {
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          return _isShimmerIndex(index) ? const ShimmerLoading(child: _ProductShimmerItem()) : _RecentItem(_products[index]);
+        },
+        childCount: _getItemCount(),
+      ),
+    );
+  }
+}
+
+class _ListViewFeature extends StatelessWidget {
+  const _ListViewFeature(this._products, this._isShimmerIndex, {Key? key}) : super(key: key);
+
+  final List<Product> _products;
+  final bool Function(int) _isShimmerIndex;
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverToBoxAdapter(
+      child: Column(
+        children: [
+          SizedBox(
+            height: NumberUtil.getScreenWidth(context) / 2,
+            child: PageView.builder(
+              controller: PageController(initialPage: 500, viewportFraction: 0.7),
+              itemBuilder: (context, index) {
+                if (_products.isEmpty || _isShimmerIndex(index % _products.length)) {
+                  return ShimmerLoading(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 8, left: 8, right: 8),
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          borderRadius: BorderRadius.all(Radius.circular(16)),
+                          color: colorShimmer,
+                        ),
+                      ),
+                    ),
+                  );
+                } else {
+                  return _FeatureItem1(_products[index % _products.length]);
+                }
+              },
+            ),
+          ),
+          _FeatureList2(_products, _isShimmerIndex),
+        ],
+      ),
+    );
+  }
+}
+
+class _FeatureItem1 extends StatelessWidget {
+  _FeatureItem1(this.product, {Key? key}) : super(key: key);
+
+  final Product product;
+  final GlobalKey _backgroundImageKey = GlobalKey();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 8, right: 8, top: 8),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Stack(
+          children: [
+            _buildParallaxBackground(context),
+            _buildTitle(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildParallaxBackground(BuildContext context) {
+    return Flow(
+      delegate: ParallaxFlowHorizontalDelegate(
+        scrollable: Scrollable.of(context)!,
+        listItemContext: context,
+        backgroundImageKey: _backgroundImageKey,
+        customTranslateY: 0.1,
+      ),
+      children: [
+        Image.network(
+          DataService.getFullUrl(product.image),
+          key: _backgroundImageKey,
+          fit: BoxFit.cover,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTitle() {
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      child: Container(
+        color: const Color(0x80FFFFFF),
+        padding: const EdgeInsets.all(8),
+        child: Text(
+          product.name,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: Colors.black,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FeatureList2 extends StatefulWidget {
+  _FeatureList2(this._products, this._isShimmerIndex, {Key? key}) : super(key: key);
+
+  final List<Product> _products;
+  final bool Function(int) _isShimmerIndex;
+  final pageController = PageController(initialPage: 505, viewportFraction: 0.8);
+
+  @override
+  State<_FeatureList2> createState() => _FeatureList2State();
+}
+
+class _FeatureList2State extends State<_FeatureList2> {
+  late int _currentPage;
+
+  @override
+  void initState() {
+    _currentPage = widget.pageController.initialPage;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: NumberUtil.getScreenWidth(context) / 3,
+      child: PageView.builder(
+        controller: widget.pageController,
+        onPageChanged: (position) {
+          setState(() {
+            _currentPage = position;
+          });
+        },
+        itemBuilder: (context, index) {
+          if (widget._products.isEmpty || widget._isShimmerIndex(index % widget._products.length)) {
+            return ShimmerLoading(
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Container(
+                  decoration: const BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(16)),
+                    color: colorShimmer,
+                  ),
+                ),
+              ),
+            );
+          } else {
+            return _buildItem(index);
+          }
+        },
+      ),
+    );
+  }
+
+  _buildItem(int index) {
+    final product = widget._products[index % widget._products.length];
+    final titles = product.name.split(' - ');
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Stack(
+          children: [
+            Container(
+              color: colorShimmer,
+              child: Image.network(
+                DataService.getFullUrl(product.image),
+                fit: BoxFit.cover,
+                width: double.infinity,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  AnimatedSlide(
+                    offset: _currentPage == index ? const Offset(0.0, 0.0) : const Offset(0.1, 0.0),
+                    duration: const Duration(milliseconds: 700),
+                    child: AnimatedOpacity(
+                      opacity: _currentPage == index ? 1 : 0,
+                      duration: const Duration(milliseconds: 1000),
+                      child: Text(
+                        titles[0],
+                        maxLines: 1,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 4,
+                  ),
+                  AnimatedSlide(
+                    offset: _currentPage == index ? const Offset(0.0, 0.0) : const Offset(-0.1, 0.0),
+                    duration: const Duration(milliseconds: 700),
+                    child: AnimatedOpacity(
+                      opacity: _currentPage == index ? 1 : 0,
+                      duration: const Duration(milliseconds: 1000),
+                      child: Text(
+                        titles.length > 1 ? titles[1] : titles[0],
+                        maxLines: 1,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -272,40 +514,33 @@ class _ListViewFavourites extends StatefulWidget {
   State<StatefulWidget> createState() => _ListViewFavouritesState();
 }
 
-class _ListViewFavouritesState extends State<_ListViewFavourites> with TickerProviderStateMixin {
+class _ListViewFavouritesState extends State<_ListViewFavourites> {
   final listKey = GlobalKey<SliverAnimatedListState>();
   int expandedPosition = -1;
-  late final controller = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 400),
-    reverseDuration: const Duration(milliseconds: 400),
-  );
 
   @override
   Widget build(BuildContext context) {
-    final isLoading = widget.favourites == null;
-    return SliverAnimatedList(
-      key: listKey,
-      initialItemCount: widget.favourites?.length ?? 5,
-      itemBuilder: (_, index, animation) {
-        return Stack(
-          children: [
-            if (isLoading) const ShimmerLoading(child: _ProductShimmerItem()),
-            AnimatedOpacity(
-              duration: const Duration(milliseconds: 500),
-              opacity: isLoading ? 0 : 1,
-              child: isLoading ? const SizedBox() : _buildFavouriteItem(index, widget.favourites![index]),
-            ),
-          ],
-        );
-      },
-    );
+    if (widget.favourites == null) {
+      return SliverList(
+        delegate: SliverChildListDelegate(
+          List.generate(shimmerItemCount, (index) => const ShimmerLoading(child: _ProductShimmerItem())),
+        ),
+      );
+    } else {
+      return SliverAnimatedList(
+        key: listKey,
+        initialItemCount: widget.favourites!.length,
+        itemBuilder: (_, index, animation) {
+          return _buildFavouriteItem(index, widget.favourites![index]);
+        },
+      );
+    }
   }
 
   Widget _buildFavouriteItem(int index, Product item) {
     return Stack(
       children: [
-        _ProductItem(item, isExpanded: expandedPosition == index),
+        _RecentItem(item, isExpanded: expandedPosition == index),
         Positioned(
           bottom: 0,
           right: 16,
@@ -333,8 +568,8 @@ class _ListViewFavouritesState extends State<_ListViewFavourites> with TickerPro
   }
 }
 
-class _ParallaxItem extends StatelessWidget {
-  _ParallaxItem(this.product, {Key? key}) : super(key: key);
+class _TrendingItem extends StatelessWidget {
+  _TrendingItem(this.product, {Key? key}) : super(key: key);
 
   final Product product;
   final GlobalKey _backgroundImageKey = GlobalKey();
@@ -360,14 +595,14 @@ class _ParallaxItem extends StatelessWidget {
 
   Widget _buildParallaxBackground(BuildContext context) {
     return Flow(
-      delegate: _ParallaxFlowDelegate(
+      delegate: ParallaxFlowVerticalDelegate(
         scrollable: Scrollable.of(context)!,
         listItemContext: context,
         backgroundImageKey: _backgroundImageKey,
       ),
       children: [
         Image.network(
-          product.thumbnail,
+          DataService.getFullUrl(product.image),
           key: _backgroundImageKey,
           fit: BoxFit.cover,
         ),
@@ -415,49 +650,8 @@ class _ParallaxItem extends StatelessWidget {
   }
 }
 
-class _ParallaxFlowDelegate extends FlowDelegate {
-  _ParallaxFlowDelegate({
-    required this.scrollable,
-    required this.listItemContext,
-    required this.backgroundImageKey,
-  }) : super(repaint: scrollable.position);
-
-  final ScrollableState scrollable;
-  final BuildContext listItemContext;
-  final GlobalKey backgroundImageKey;
-
-  @override
-  BoxConstraints getConstraintsForChild(int i, BoxConstraints constraints) {
-    return BoxConstraints.tightFor(
-      width: constraints.maxWidth,
-    );
-  }
-
-  @override
-  void paintChildren(FlowPaintingContext context) {
-    final scrollableBox = scrollable.context.findRenderObject() as RenderBox;
-    final listItemBox = listItemContext.findRenderObject() as RenderBox;
-    final listItemOffset = listItemBox.localToGlobal(listItemBox.size.centerLeft(Offset.zero), ancestor: scrollableBox);
-    final viewportDimension = scrollable.position.viewportDimension;
-    final scrollFraction = (listItemOffset.dy / viewportDimension).clamp(0.0, 1.0);
-    final verticalAlignment = Alignment(0.0, scrollFraction * 2 - 1);
-    final backgroundSize = (backgroundImageKey.currentContext!.findRenderObject() as RenderBox).size;
-    final listItemSize = context.size;
-    final childRect = verticalAlignment.inscribe(backgroundSize, Offset.zero & listItemSize);
-    context.paintChild(
-      0,
-      transform: Transform.translate(offset: Offset(0.0, childRect.top)).transform,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_ParallaxFlowDelegate oldDelegate) {
-    return scrollable != oldDelegate.scrollable || listItemContext != oldDelegate.listItemContext || backgroundImageKey != oldDelegate.backgroundImageKey;
-  }
-}
-
-class _ProductItem extends StatelessWidget {
-  const _ProductItem(this.product, {this.isExpanded = false}) : super();
+class _RecentItem extends StatelessWidget {
+  const _RecentItem(this.product, {this.isExpanded = false}) : super();
 
   final Product product;
   final bool isExpanded;
@@ -484,7 +678,7 @@ class _ProductItem extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Image.network(
-                product.thumbnail,
+                DataService.getFullUrl(product.thumbnail),
                 fit: BoxFit.cover,
                 width: 100,
                 height: 100,
@@ -506,11 +700,11 @@ class _ProductItem extends StatelessWidget {
                       ),
                       AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
-                        curve: Curves.easeInOut,
                         padding: isExpanded ? const EdgeInsets.only(top: 8, bottom: 16) : EdgeInsets.zero,
                         child: isExpanded
                             ? Text(
                                 product.description,
+                                textAlign: TextAlign.justify,
                                 style: const TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
@@ -554,8 +748,8 @@ class _ProductItem extends StatelessWidget {
   }
 }
 
-class _StaggeredGridItem extends StatelessWidget {
-  const _StaggeredGridItem(this.product) : super();
+class _NewItem extends StatelessWidget {
+  const _NewItem(this.product) : super();
 
   final Product product;
 
@@ -579,7 +773,7 @@ class _StaggeredGridItem extends StatelessWidget {
         child: Column(
           children: [
             Image.network(
-              product.thumbnail,
+              DataService.getFullUrl(product.thumbnail),
               fit: BoxFit.fitWidth,
               frameBuilder: (context, child, frame, _) {
                 if (frame == null) {
@@ -587,7 +781,7 @@ class _StaggeredGridItem extends StatelessWidget {
                     height: 100,
                     decoration: const BoxDecoration(
                       borderRadius: BorderRadius.all(Radius.circular(8)),
-                      color: Color(0xFFd5d5d5),
+                      color: colorShimmer,
                     ),
                   );
                 }
@@ -627,7 +821,7 @@ class _ProductShimmerItem extends StatelessWidget {
               height: 100,
               decoration: const BoxDecoration(
                 borderRadius: BorderRadius.all(Radius.circular(8)),
-                color: Color(0xFFd5d5d5),
+                color: colorShimmer,
               ),
             ),
             Expanded(
@@ -639,7 +833,7 @@ class _ProductShimmerItem extends StatelessWidget {
                     Container(
                       decoration: const BoxDecoration(
                         borderRadius: BorderRadius.all(Radius.circular(8)),
-                        color: Color(0xFFd5d5d5),
+                        color: colorShimmer,
                       ),
                       width: double.infinity,
                       height: 16,
@@ -648,7 +842,7 @@ class _ProductShimmerItem extends StatelessWidget {
                       margin: const EdgeInsets.only(top: 2),
                       decoration: const BoxDecoration(
                         borderRadius: BorderRadius.all(Radius.circular(8)),
-                        color: Color(0xFFd5d5d5),
+                        color: colorShimmer,
                       ),
                       width: 150,
                       height: 16,
@@ -657,7 +851,7 @@ class _ProductShimmerItem extends StatelessWidget {
                     Container(
                       decoration: const BoxDecoration(
                         borderRadius: BorderRadius.all(Radius.circular(8)),
-                        color: Color(0xFFd5d5d5),
+                        color: colorShimmer,
                       ),
                       width: 150,
                       height: 16,
@@ -666,7 +860,7 @@ class _ProductShimmerItem extends StatelessWidget {
                       margin: const EdgeInsets.only(top: 4),
                       decoration: const BoxDecoration(
                         borderRadius: BorderRadius.all(Radius.circular(8)),
-                        color: Color(0xFFd5d5d5),
+                        color: colorShimmer,
                       ),
                       width: 100,
                       height: 12,
@@ -682,8 +876,10 @@ class _ProductShimmerItem extends StatelessWidget {
   }
 }
 
-class _GridShimmerItem extends StatelessWidget {
-  const _GridShimmerItem() : super();
+class _TrendingShimmerItem extends StatelessWidget {
+  const _TrendingShimmerItem({this.marginHorizontal = 0}) : super();
+
+  final double marginHorizontal;
 
   @override
   Widget build(BuildContext context) {
@@ -691,25 +887,25 @@ class _GridShimmerItem extends StatelessWidget {
       children: [
         Container(
           height: 100,
-          margin: const EdgeInsets.only(top: 8),
+          margin: EdgeInsets.only(top: 8, left: marginHorizontal, right: marginHorizontal),
           decoration: const BoxDecoration(
             borderRadius: BorderRadius.all(Radius.circular(8)),
-            color: Color(0xFFd5d5d5),
+            color: colorShimmer,
           ),
         ),
         Container(
-          margin: const EdgeInsets.only(top: 8, right: 40),
+          margin: EdgeInsets.only(top: 8, left: marginHorizontal, right: 60),
           decoration: const BoxDecoration(
             borderRadius: BorderRadius.all(Radius.circular(8)),
-            color: Color(0xFFd5d5d5),
+            color: colorShimmer,
           ),
           height: 16,
         ),
         Container(
-          margin: const EdgeInsets.only(top: 4),
+          margin: EdgeInsets.only(top: 4, left: marginHorizontal, right: marginHorizontal),
           decoration: const BoxDecoration(
             borderRadius: BorderRadius.all(Radius.circular(8)),
-            color: Color(0xFFd5d5d5),
+            color: colorShimmer,
           ),
           height: 16,
         ),

@@ -8,8 +8,11 @@ import 'package:http/http.dart' as http;
 
 class DataService {
   static String? accessToken;
+  static String baseUrl = 'https://nguyenducthinh.herokuapp.com';
 
-  static _getUrl(String path) => Uri.parse('https://nguyenducthinh.herokuapp.com/api/$path');
+  static String getFullUrl(String path) => '$baseUrl$path';
+
+  static _getApiUrl(String path) => Uri.parse('$baseUrl/api/$path');
 
   static _getHeader({String type = 'application/json; charset=UTF-8'}) {
     return {
@@ -35,7 +38,7 @@ class DataService {
 
   static Future<User?> login(String username, String password) async {
     final response = await http.post(
-      _getUrl('user/login'),
+      _getApiUrl('user/login'),
       headers: _getHeader(type: 'application/x-www-form-urlencoded'),
       body: {
         'username': username,
@@ -47,7 +50,7 @@ class DataService {
 
   static Future<ProductListResponse?> getProducts(int page) async {
     final response = await http.get(
-      _getUrl('product/$page'),
+      _getApiUrl('product/$page'),
       headers: _getHeader(),
     );
     // await Future.delayed(Duration(seconds: 5));

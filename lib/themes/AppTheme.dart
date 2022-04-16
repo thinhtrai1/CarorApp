@@ -24,14 +24,11 @@ class AppTheme {
   );
 }
 
-
-
 Route createRoute(Widget widget) {
   return PageRouteBuilder(
     pageBuilder: (context, animation, secondaryAnimation) => widget,
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      var tween = Tween(begin: const Offset(1.0, 0.0), end: Offset.zero)
-          .chain(CurveTween(curve: Curves.ease));
+      var tween = Tween(begin: const Offset(1.0, 0.0), end: Offset.zero).chain(CurveTween(curve: Curves.ease));
       return SlideTransition(
         position: animation.drive(tween),
         child: child,
@@ -41,5 +38,10 @@ Route createRoute(Widget widget) {
 }
 
 void toast(String? msg) {
-  Fluttertoast.showToast(msg: msg.toString(),);
+  Fluttertoast.showToast(
+    msg: msg.toString(),
+  );
 }
+
+const shimmerItemCount = 5;
+const colorShimmer = Color(0xFFd5d5d5);

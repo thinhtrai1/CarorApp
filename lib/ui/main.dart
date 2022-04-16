@@ -35,7 +35,7 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   bool _passwordVisible = false;
-  final _emailController = TextEditingController(text: 'thinhtrai3');
+  final _emailController = TextEditingController(text: 'thinhtrai1');
   final _passwordController = TextEditingController(text: '1');
   var _showLoading = false;
 

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 
 
@@ -7,4 +8,6 @@ class NumberUtil {
   static String priceFormat(num n) {
     return _format.format(n) + 'đ';
   }
+
+  static double getScreenWidth(BuildContext context) => MediaQuery.of(context).size.width;
 }

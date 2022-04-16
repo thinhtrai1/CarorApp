@@ -74,12 +74,9 @@ class _HomePageState extends State<HomePage> {
             padding: const EdgeInsets.all(8),
             child: Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 0),
-                  child: Icon(
-                    icon,
-                    color: Colors.black,
-                  ),
+                Icon(
+                  icon,
+                  color: Colors.black,
                 ),
                 Text(
                   title,
