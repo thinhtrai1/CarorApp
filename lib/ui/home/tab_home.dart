@@ -1,9 +1,9 @@
 import 'dart:math';
 
-import 'package:caror/data/DataService.dart';
+import 'package:caror/data/data_service.dart';
 import 'package:caror/entity/Product.dart';
-import 'package:caror/themes/AppTheme.dart';
-import 'package:caror/themes/Number.dart';
+import 'package:caror/themes/theme.dart';
+import 'package:caror/themes/number.dart';
 import 'package:caror/widget/parallax.dart';
 import 'package:caror/widget/shimmer_loading.dart';
 import 'package:flutter/cupertino.dart';
@@ -289,7 +289,7 @@ class _ListViewFeature extends StatelessWidget {
       child: Column(
         children: [
           SizedBox(
-            height: NumberUtil.getScreenWidth(context) / 2,
+            height: Number.getScreenWidth(context) / 2,
             child: PageView.builder(
               controller: PageController(initialPage: 500, viewportFraction: 0.7),
               itemBuilder: (context, index) {
@@ -353,7 +353,7 @@ class _FeatureItem1 extends StatelessWidget {
           product.image,
           key: _backgroundImageKey,
           fit: BoxFit.cover,
-          shimmerWidth: NumberUtil.getScreenWidth(context) * 0.7,
+          shimmerWidth: Number.getScreenWidth(context) * 0.7,
         ),
       ],
     );
@@ -404,7 +404,7 @@ class _FeatureList2State extends State<_FeatureList2> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: NumberUtil.getScreenWidth(context) / 3,
+      height: Number.getScreenWidth(context) / 3,
       child: PageView.builder(
         controller: widget._pageController,
         onPageChanged: (position) {
@@ -552,7 +552,6 @@ class _ListViewFavouritesState extends State<_ListViewFavourites> {
         widget.favourites!.removeAt(index);
         listKey.currentState!.removeItem(index, (_, animation) => const SizedBox());
       },
-      onResize: () {},
       child: Stack(
         children: [
           _RecentItem(item, isExpanded: expandedPosition == index),
@@ -621,7 +620,7 @@ class _TrendingItem extends StatelessWidget {
           product.image,
           key: _backgroundImageKey,
           fit: BoxFit.cover,
-          shimmerHeight: NumberUtil.getScreenWidth(context) * 3 / 8,
+          shimmerHeight: Number.getScreenWidth(context) * 3 / 8,
         ),
       ],
     );
@@ -731,7 +730,7 @@ class _RecentItem extends StatelessWidget {
                       ),
                       const Spacer(),
                       Text(
-                        NumberUtil.priceFormat(product.price),
+                        Number.priceFormat(product.price),
                         style: const TextStyle(
                           color: Color(0xFFFF3D3D),
                           fontSize: 14,

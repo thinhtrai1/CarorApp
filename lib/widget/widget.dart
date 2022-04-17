@@ -1,5 +1,5 @@
-import 'package:caror/data/DataService.dart';
-import 'package:caror/themes/AppTheme.dart';
+import 'package:caror/data/data_service.dart';
+import 'package:caror/themes/theme.dart';
 import 'package:flutter/material.dart';
 
 class SimpleProgressBar extends Center {

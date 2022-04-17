@@ -1,8 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 
-
-class NumberUtil {
+class Number {
   static final NumberFormat _format = NumberFormat("#,###.##", "en_US");
 
   static String priceFormat(num n) {

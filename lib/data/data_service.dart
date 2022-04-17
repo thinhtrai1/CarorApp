@@ -1,13 +1,13 @@
 import 'dart:convert';
 
+import 'package:caror/data/shared_preferences.dart';
 import 'package:caror/entity/LoginResponse.dart';
 import 'package:caror/entity/ProductListResponse.dart';
 import 'package:caror/entity/User.dart';
-import 'package:caror/themes/AppTheme.dart';
+import 'package:caror/themes/theme.dart';
 import 'package:http/http.dart' as http;
 
 class DataService {
-  static String? accessToken;
   static String baseUrl = 'https://nguyenducthinh.herokuapp.com';
 
   static String getFullUrl(String path) => '$baseUrl$path';
@@ -15,6 +15,7 @@ class DataService {
   static _getApiUrl(String path) => Uri.parse('$baseUrl/api/$path');
 
   static _getHeader({String type = 'application/json; charset=UTF-8'}) {
+    final String? accessToken = AppPreferences.getAccessToken();
     return {
       "Content-Type": type,
       if (accessToken != null) "Authorization": 'Bearer $accessToken',

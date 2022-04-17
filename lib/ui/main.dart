@@ -1,12 +1,15 @@
-import 'package:caror/data/DataService.dart';
-import 'package:caror/themes/AppTheme.dart';
+import 'package:caror/data/data_service.dart';
+import 'package:caror/data/shared_preferences.dart';
+import 'package:caror/themes/theme.dart';
 import 'package:caror/widget/widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'home/home.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await AppPreferences.init();
   runApp(const MyApp());
 }
 
@@ -151,7 +154,7 @@ class _LoginPageState extends State<LoginPage> {
     DataService.login(username, password).then((user) {
       if (user != null) {
         toast('Welcome ' + user.lastName);
-        DataService.accessToken = user.token;
+        AppPreferences.setAccessToken(user.token);
         Navigator.pushAndRemoveUntil(context, createRoute(const HomePage()), (route) => false,);
       }
       setState(() {

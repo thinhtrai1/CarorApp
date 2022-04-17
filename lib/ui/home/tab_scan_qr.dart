@@ -1,4 +1,4 @@
-import 'package:caror/themes/AppTheme.dart';
+import 'package:caror/themes/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
