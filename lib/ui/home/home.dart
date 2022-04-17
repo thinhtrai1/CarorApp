@@ -22,14 +22,14 @@ class _HomePageState extends State<HomePage> {
             Flexible(
               flex: 1,
               child: PageView.builder(
-                itemCount: 3,
+                itemCount: 5,
                 controller: controller,
                 onPageChanged: (page) {},
                 itemBuilder: (BuildContext context, int itemIndex) {
                   switch (itemIndex) {
                     case 0:
                       return const HomeTab();
-                    case 1:
+                    case 2:
                       return ScanQRTab();
                     default:
                       return const SettingTab();
@@ -51,8 +51,10 @@ class _HomePageState extends State<HomePage> {
               child: Row(
                 children: [
                   _buildBottomTabItem(0, 'Home', Icons.home_rounded),
-                  _buildBottomTabItem(1, 'Scan QR', Icons.qr_code_scanner_rounded),
-                  _buildBottomTabItem(2, 'Settings', Icons.settings_rounded),
+                  _buildBottomTabItem(1, 'Forum', Icons.camera_rounded),
+                  _buildBottomTabItem(2, 'Cart', Icons.shopping_cart_rounded),
+                  _buildBottomTabItem(3, 'Chat', Icons.chat_rounded),
+                  _buildBottomTabItem(4, 'Settings', Icons.settings_rounded),
                 ],
               ),
             ),

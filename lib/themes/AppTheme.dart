@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
+class App {
+  static final navigatorKey = GlobalKey<NavigatorState>();
+}
+
 class AppTheme {
   static const primaryColor = Color(0xFF363636);
   static const primarySwatch = MaterialColor(

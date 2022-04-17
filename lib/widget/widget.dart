@@ -1,3 +1,5 @@
+import 'package:caror/data/DataService.dart';
+import 'package:caror/themes/AppTheme.dart';
 import 'package:flutter/material.dart';
 
 class SimpleProgressBar extends Center {
@@ -42,4 +44,37 @@ class CommonIcon extends Material {
             ),
           ),
         );
+}
+
+class CommonWidget {
+  static Image image(
+      String path, {
+        Key? key,
+        BoxFit? fit,
+        double? width,
+        double? height,
+        double? shimmerWidth,
+        double? shimmerHeight,
+        double shimmerRadius = 8,
+      }) {
+    return Image.network(
+      DataService.getFullUrl(path),
+      key: key,
+      fit: fit,
+      width: width,
+      height: height,
+      frameBuilder: (context, child, frame, _) {
+        return frame == null
+            ? Container(
+                width: width ?? shimmerWidth,
+                height: height ?? shimmerHeight,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(shimmerRadius)),
+                  color: colorShimmer,
+                ),
+              )
+            : child;
+      },
+    );
+  }
 }

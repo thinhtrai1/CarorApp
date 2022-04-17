@@ -17,7 +17,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Caror',
+      key: App.navigatorKey,
       theme: ThemeData(fontFamily: 'Montserrat', primaryColor: AppTheme.primaryColor, primarySwatch: AppTheme.primarySwatch),
       home: const LoginPage(title: 'Caror'),
     );

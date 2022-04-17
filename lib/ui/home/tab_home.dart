@@ -95,8 +95,8 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
   }
 
   _buildChipListView() {
-    //TODO: #HOWTO Scroll selected item to center
-    //TODO: #HOWTO Update state when page change (avoid setSate())
+    //TODO #HOWTO: Scroll selected item to center
+    //TODO #HOWTO: Update state when page change (avoid setState())
     return SizedBox(
       height: 48,
       child: ListView.separated(
@@ -104,9 +104,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
         scrollDirection: Axis.horizontal,
         itemCount: _chips.length,
         physics: const BouncingScrollPhysics(),
-        separatorBuilder: (BuildContext context, int index) => const SizedBox(
-          width: 8,
-        ),
+        separatorBuilder: (BuildContext context, int index) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           return GestureDetector(
             onTap: () {
@@ -159,9 +157,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
       linearGradient: Shimmer.shimmerGradient,
       child: CustomScrollView(
         controller: controller,
-        physics: const BouncingScrollPhysics(
-          parent: AlwaysScrollableScrollPhysics(),
-        ),
+        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         slivers: [
           if (!_isInitial)
             CupertinoSliverRefreshControl(
@@ -173,7 +169,6 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
               },
               builder: (c, refreshState, pulledExtent, d, e) {
                 return Stack(
-                  clipBehavior: Clip.none,
                   children: <Widget>[
                     Positioned(
                       bottom: pulledExtent / 7,
@@ -354,10 +349,11 @@ class _FeatureItem1 extends StatelessWidget {
         customTranslateY: 0.1,
       ),
       children: [
-        Image.network(
-          DataService.getFullUrl(product.image),
+        CommonWidget.image(
+          product.image,
           key: _backgroundImageKey,
           fit: BoxFit.cover,
+          shimmerWidth: NumberUtil.getScreenWidth(context) * 0.7,
         ),
       ],
     );
@@ -390,7 +386,7 @@ class _FeatureList2 extends StatefulWidget {
 
   final List<Product> _products;
   final bool Function(int) _isShimmerIndex;
-  final pageController = PageController(initialPage: 505, viewportFraction: 0.8);
+  final _pageController = PageController(initialPage: 505, viewportFraction: 0.8);
 
   @override
   State<_FeatureList2> createState() => _FeatureList2State();
@@ -401,7 +397,7 @@ class _FeatureList2State extends State<_FeatureList2> {
 
   @override
   void initState() {
-    _currentPage = widget.pageController.initialPage;
+    _currentPage = widget._pageController.initialPage;
     super.initState();
   }
 
@@ -410,7 +406,7 @@ class _FeatureList2State extends State<_FeatureList2> {
     return SizedBox(
       height: NumberUtil.getScreenWidth(context) / 3,
       child: PageView.builder(
-        controller: widget.pageController,
+        controller: widget._pageController,
         onPageChanged: (position) {
           setState(() {
             _currentPage = position;
@@ -446,13 +442,10 @@ class _FeatureList2State extends State<_FeatureList2> {
         borderRadius: BorderRadius.circular(16),
         child: Stack(
           children: [
-            Container(
-              color: colorShimmer,
-              child: Image.network(
-                DataService.getFullUrl(product.image),
-                fit: BoxFit.cover,
-                width: double.infinity,
-              ),
+            CommonWidget.image(
+              product.image,
+              fit: BoxFit.cover,
+              width: double.infinity,
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -538,32 +531,55 @@ class _ListViewFavouritesState extends State<_ListViewFavourites> {
   }
 
   Widget _buildFavouriteItem(int index, Product item) {
-    return Stack(
-      children: [
-        _RecentItem(item, isExpanded: expandedPosition == index),
-        Positioned(
-          bottom: 0,
-          right: 16,
-          child: CommonIcon(Icons.delete_rounded, padding: 12, onPressed: () {
-            expandedPosition = -1;
-            widget.favourites!.removeAt(index);
-            listKey.currentState!.removeItem(index, (_, animation) => SizeTransition(sizeFactor: animation, child: _buildFavouriteItem(index, item)));
-          }),
-        ),
-        Positioned(
-          bottom: 0,
-          right: 60,
-          child: AnimatedRotation(
-            turns: expandedPosition == index ? 0.5 : 0,
-            duration: const Duration(milliseconds: 300),
-            child: CommonIcon(Icons.expand_more_rounded, padding: 12, onPressed: () {
-              setState(() {
-                expandedPosition = expandedPosition == index ? -1 : index;
-              });
+    return Dismissible(
+      key: Key(item.id.toString()),
+      background: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: const [
+          Icon(Icons.delete_rounded),
+          Icon(Icons.arrow_back_rounded),
+          SizedBox(
+            width: 16,
+          ),
+        ],
+      ),
+      onDismissed: (direction) {
+        if (expandedPosition == index) {
+          expandedPosition = -1;
+        } else if (expandedPosition > index) {
+          expandedPosition -= 1;
+        }
+        widget.favourites!.removeAt(index);
+        listKey.currentState!.removeItem(index, (_, animation) => const SizedBox());
+      },
+      onResize: () {},
+      child: Stack(
+        children: [
+          _RecentItem(item, isExpanded: expandedPosition == index),
+          Positioned(
+            bottom: 0,
+            right: 16,
+            child: CommonIcon(Icons.delete_rounded, padding: 12, onPressed: () {
+              expandedPosition = -1;
+              widget.favourites!.removeAt(index);
+              listKey.currentState!.removeItem(index, (_, animation) => SizeTransition(sizeFactor: animation, child: _buildFavouriteItem(index, item)));
             }),
           ),
-        ),
-      ],
+          Positioned(
+            bottom: 0,
+            right: 60,
+            child: AnimatedRotation(
+              turns: expandedPosition == index ? 0.5 : 0,
+              duration: const Duration(milliseconds: 300),
+              child: CommonIcon(Icons.expand_more_rounded, padding: 12, onPressed: () {
+                setState(() {
+                  expandedPosition = expandedPosition == index ? -1 : index;
+                });
+              }),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -601,10 +617,11 @@ class _TrendingItem extends StatelessWidget {
         backgroundImageKey: _backgroundImageKey,
       ),
       children: [
-        Image.network(
-          DataService.getFullUrl(product.image),
+        CommonWidget.image(
+          product.image,
           key: _backgroundImageKey,
           fit: BoxFit.cover,
+          shimmerHeight: NumberUtil.getScreenWidth(context) * 3 / 8,
         ),
       ],
     );
@@ -677,8 +694,8 @@ class _RecentItem extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Image.network(
-                DataService.getFullUrl(product.thumbnail),
+              CommonWidget.image(
+                product.thumbnail,
                 fit: BoxFit.cover,
                 width: 100,
                 height: 100,
@@ -772,21 +789,10 @@ class _NewItem extends StatelessWidget {
         borderRadius: const BorderRadius.all(Radius.circular(8)),
         child: Column(
           children: [
-            Image.network(
-              DataService.getFullUrl(product.thumbnail),
+            CommonWidget.image(
+              product.thumbnail,
               fit: BoxFit.fitWidth,
-              frameBuilder: (context, child, frame, _) {
-                if (frame == null) {
-                  return Container(
-                    height: 100,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(Radius.circular(8)),
-                      color: colorShimmer,
-                    ),
-                  );
-                }
-                return child;
-              },
+              shimmerHeight: 100,
             ),
             Padding(
               padding: const EdgeInsets.all(8),
