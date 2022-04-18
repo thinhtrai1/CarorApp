@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 class App {
   static final navigatorKey = GlobalKey<NavigatorState>();
+
+  static const ask = 'com.app.caror.caror.MainActivity';
 }
 
 class AppTheme {
@@ -41,9 +44,47 @@ Route createRoute(Widget widget) {
   );
 }
 
-void toast(String? msg) {
-  Fluttertoast.showToast(
-    msg: msg.toString(),
+void showToast(String? msg) {
+  if (msg != null) {
+    Fluttertoast.showToast(
+      msg: msg,
+    );
+  }
+}
+
+void showLoading(BuildContext context, {String? message}) {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    barrierColor: Colors.black26,
+    builder: (BuildContext context) {
+      return Center(
+        child: Container(
+          height: 48,
+          padding: const EdgeInsets.only(left: 12, right: 24),
+          decoration: const BoxDecoration(
+            borderRadius: BorderRadius.all(Radius.circular(24)),
+            color: Colors.white,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SpinKitFadingCircle(color: Colors.black, size: 32, duration: Duration(milliseconds: 500)),
+              const SizedBox(width: 8),
+              Text(
+                message ?? 'Loading...',
+                style: const TextStyle(
+                  fontFamily: "Montserrat",
+                  fontSize: 14,
+                  color: Colors.black,
+                  decoration: TextDecoration.none,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
   );
 }
 

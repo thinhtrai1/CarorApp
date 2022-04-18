@@ -74,24 +74,26 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        CustomTabBar(
-          controller: _tabController,
-        ),
-        Flexible(
-          child: TabBarView(
+    return SafeArea(
+      child: Column(
+        children: [
+          CustomTabBar(
             controller: _tabController,
-            children: [
-              _buildContentView(_ListViewFeature(_products, _isShimmerIndex), _scrollController, sliverChild2: _buildListViewFeature3()),
-              _buildContentView(_buildListViewTrending(), _scrollController),
-              _buildContentView(_ListViewFavourites(favourites: _favourites), null),
-              _buildContentView(_buildListViewNew(), _scrollController),
-              _buildContentView(_buildListViewRecent(), _scrollController),
-            ],
           ),
-        ),
-      ],
+          Flexible(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildContentView(_ListViewFeature(_products, _isShimmerIndex), _scrollController, sliverChild2: _buildListViewFeature3()),
+                _buildContentView(_buildListViewTrending(), _scrollController),
+                _buildContentView(_ListViewFavourites(favourites: _favourites), null),
+                _buildContentView(_buildListViewNew(), _scrollController),
+                _buildContentView(_buildListViewRecent(), _scrollController),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -174,7 +176,12 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
     return SliverList(
       delegate: SliverChildBuilderDelegate(
         (context, index) {
-          return _isShimmerIndex(index) ? const ShimmerLoading(child: _ProductShimmerItem()) : _RecentItem(_products[index]);
+          return _isShimmerIndex(index)
+              ? const ShimmerLoading(child: _ProductShimmerItem())
+              : _RecentItem(
+                  _products[index],
+                  offsetY: 0,
+                );
         },
         childCount: _getItemCount(),
       ),
@@ -369,14 +376,14 @@ class _FeatureList2State extends State<_FeatureList2> {
               ),
             );
           } else {
-            return _buildItem(index);
+            return _buildFeatureItem2(index);
           }
         },
       ),
     );
   }
 
-  _buildItem(int index) {
+  _buildFeatureItem2(int index) {
     final product = widget._products[index % widget._products.length];
     final titles = product.name.split(' - ');
     return Padding(
@@ -408,6 +415,13 @@ class _FeatureList2State extends State<_FeatureList2> {
                           color: Colors.white,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
+                          shadows: <Shadow>[
+                            Shadow(
+                              offset: Offset(2, 2),
+                              blurRadius: 4,
+                              color: Colors.black,
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -427,6 +441,13 @@ class _FeatureList2State extends State<_FeatureList2> {
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 16,
+                          shadows: <Shadow>[
+                            Shadow(
+                              offset: Offset(2, 2),
+                              blurRadius: 4,
+                              color: Colors.black,
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -477,13 +498,14 @@ class _ListViewFavouritesState extends State<_ListViewFavourites> {
     return Dismissible(
       key: Key(item.id.toString()),
       background: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
         children: const [
+          SizedBox(width: 40),
+          Icon(Icons.arrow_forward_rounded),
+          Icon(Icons.delete_rounded),
+          Spacer(),
           Icon(Icons.delete_rounded),
           Icon(Icons.arrow_back_rounded),
-          SizedBox(
-            width: 16,
-          ),
+          SizedBox(width: 40),
         ],
       ),
       onDismissed: (direction) {
@@ -610,22 +632,23 @@ class _TrendingItem extends StatelessWidget {
 }
 
 class _RecentItem extends StatelessWidget {
-  const _RecentItem(this.product, {this.isExpanded = false}) : super();
+  const _RecentItem(this.product, {this.isExpanded = false, this.offsetY = 2}) : super();
 
   final Product product;
   final bool isExpanded;
+  final double offsetY;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(top: 8, left: 16, right: 16),
-      decoration: const BoxDecoration(
-        borderRadius: BorderRadius.all(Radius.circular(16)),
+      decoration: BoxDecoration(
+        borderRadius: const BorderRadius.all(Radius.circular(16)),
         color: Colors.white,
         boxShadow: [
           BoxShadow(
             color: colorShadow,
-            offset: Offset(0, 2),
+            offset: Offset(0, offsetY),
             blurRadius: 4,
           ),
         ],
@@ -900,7 +923,7 @@ class _CustomTabBarState extends State<CustomTabBar> {
               ? Container(
                   decoration: const BoxDecoration(
                     borderRadius: BorderRadius.all(Radius.circular(24)),
-                    color: colorDark,
+                    color: Colors.black,
                   ),
                   height: 32,
                   alignment: Alignment.center,
@@ -917,7 +940,7 @@ class _CustomTabBarState extends State<CustomTabBar> {
                   decoration: BoxDecoration(
                     borderRadius: const BorderRadius.all(Radius.circular(24)),
                     border: Border.all(
-                      color: const Color(0xFF323232),
+                      color: Colors.black,
                       width: 2,
                     ),
                   ),

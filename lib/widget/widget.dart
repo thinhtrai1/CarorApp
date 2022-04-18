@@ -2,34 +2,6 @@ import 'package:caror/data/data_service.dart';
 import 'package:caror/themes/theme.dart';
 import 'package:flutter/material.dart';
 
-class SimpleProgressBar extends Center {
-  SimpleProgressBar({Key? key})
-      : super(
-          key: key,
-          child: Container(
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Color(0xFFE8E8E8),
-                  offset: Offset(0, 2),
-                  blurRadius: 4,
-                )
-              ],
-            ),
-            child: const SizedBox(
-              width: 56,
-              height: 56,
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: CircularProgressIndicator(),
-              ),
-            ),
-          ),
-        );
-}
-
 class CommonIcon extends Material {
   CommonIcon(IconData icon, {Key? key, double padding = 20, GestureTapCallback? onPressed})
       : super(
@@ -48,15 +20,15 @@ class CommonIcon extends Material {
 
 class CommonWidget {
   static Image image(
-      String path, {
-        Key? key,
-        BoxFit? fit,
-        double? width,
-        double? height,
-        double? shimmerWidth,
-        double? shimmerHeight,
-        double shimmerRadius = 8,
-      }) {
+    String path, {
+    Key? key,
+    BoxFit? fit,
+    double? width,
+    double? height,
+    double? shimmerWidth,
+    double? shimmerHeight,
+    double shimmerRadius = 8,
+  }) {
     return Image.network(
       DataService.getFullUrl(path),
       key: key,
@@ -77,4 +49,45 @@ class CommonWidget {
       },
     );
   }
+}
+
+class CommonBackgroundContainer extends Stack {
+  CommonBackgroundContainer({Key? key, Widget? child, Color? color, EdgeInsetsGeometry? padding, double headerHeight = 160})
+      : super(
+          key: key,
+          children: [
+            SizedBox(
+              width: double.infinity,
+              height: headerHeight + 64,
+              child: const DecoratedBox(
+                decoration: BoxDecoration(color: Colors.black),
+              ),
+            ),
+            Container(
+              margin: EdgeInsets.only(top: headerHeight),
+              height: double.infinity,
+              child: child,
+              padding: padding,
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.only(topLeft: Radius.circular(64)),
+                color: color ?? Colors.white,
+              ),
+            ),
+          ],
+        );
+}
+
+class CommonTitleText extends Text {
+  const CommonTitleText(
+    String title, {
+    Key? key,
+  }) : super(
+          title,
+          key: key,
+          style: const TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.w600,
+            fontSize: 32,
+          ),
+        );
 }

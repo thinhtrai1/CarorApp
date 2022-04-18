@@ -1,15 +1,19 @@
-import 'package:caror/data/data_service.dart';
 import 'package:caror/data/shared_preferences.dart';
 import 'package:caror/themes/theme.dart';
-import 'package:caror/widget/widget.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'home/home.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AppPreferences.init();
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      systemNavigationBarColor: Colors.white,
+      systemNavigationBarIconBrightness: Brightness.dark,
+    ),
+  );
   runApp(const MyApp());
 }
 
@@ -22,7 +26,12 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Caror',
       key: App.navigatorKey,
-      theme: ThemeData(fontFamily: 'Montserrat', primaryColor: AppTheme.primaryColor, primarySwatch: AppTheme.primarySwatch),
+      theme: ThemeData(
+        fontFamily: 'Montserrat',
+        primaryColor: AppTheme.primaryColor,
+        primarySwatch: AppTheme.primarySwatch,
+        scaffoldBackgroundColor: Colors.white,
+      ),
       home: const HomePage(),
     );
   }

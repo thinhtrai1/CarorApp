@@ -1,3 +1,6 @@
+import 'package:caror/ui/home/tab_card.dart';
+import 'package:caror/ui/home/tab_chat.dart';
+import 'package:caror/ui/home/tab_forum.dart';
 import 'package:caror/ui/home/tab_home.dart';
 import 'package:caror/ui/home/tab_setting.dart';
 import 'package:flutter/material.dart';
@@ -9,57 +12,95 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
-  final PageController controller = PageController(keepPage: false);
+class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
+  late final _tabController = TabController(length: 5, vsync: this);
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 60,
-              child: PageView.builder(
-                itemCount: 5,
-                controller: controller,
-                onPageChanged: (page) {},
-                itemBuilder: (BuildContext context, int itemIndex) {
-                  switch (itemIndex) {
-                    case 0:
-                      return const HomeTab();
-                    default:
-                      return const SettingTab();
-                  }
-                },
-              ),
+      body: Stack(
+        children: [
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 60,
+            child: TabBarView(
+              controller: _tabController,
+              children: const [
+                HomeTab(),
+                ForumTab(),
+                CardTab(),
+                ChatTab(),
+                SettingTab(),
+              ],
             ),
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: CustomPaint(
-                painter: _BottomBarPaint(),
-                child: SizedBox(
-                  height: 70,
-                  child: Row(
-                    children: [
-                      _buildBottomTabItem(0, 'Home', Icons.home_rounded),
-                      _buildBottomTabItem(1, 'Forum', Icons.camera_rounded),
-                      _buildBottomTabMiddleItem(2, 'Cart', Icons.shopping_cart_rounded),
-                      _buildBottomTabItem(3, 'Chat', Icons.chat_rounded),
-                      _buildBottomTabItem(4, 'Settings', Icons.settings_rounded),
-                    ],
-                  ),
-                ),
-              ),
+          ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 60,
+            child: CustomPaint(
+              painter: _BottomBarPaint(),
+              child: _BottomBar(_tabController),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
+    );
+  }
+}
+
+class _BottomBar extends StatefulWidget {
+  const _BottomBar(this._tabController, {Key? key}) : super(key: key);
+
+  final TabController _tabController;
+
+  @override
+  State<StatefulWidget> createState() => _BottomBarState();
+}
+
+class _BottomBarState extends State<_BottomBar> with SingleTickerProviderStateMixin {
+  late Animation<double> _rotateAnimation;
+  late AnimationController _animationController;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(duration: const Duration(milliseconds: 200), vsync: this);
+    _rotateAnimation = Tween<double>(begin: 0, end: 0.125).animate(_animationController)..addListener(() => setState(() {}));
+    widget._tabController.addListener(() => _rotateIcon());
+  }
+
+  _rotateIcon() {
+    _animationController.forward().then((value) => _animationController.reverse());
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const SizedBox(width: 16),
+        _buildBottomTabItem(0, 'Home', Icons.home_rounded),
+        _buildBottomTabItem(1, 'Forum', Icons.camera_rounded),
+        _buildBottomTabMiddleItem(2, 'Cart', Icons.shopping_cart_rounded),
+        _buildBottomTabItem(3, 'Chat', Icons.chat_rounded),
+        _buildBottomTabItem(4, 'Settings', Icons.settings_rounded),
+        const SizedBox(width: 16),
+      ],
     );
   }
 
@@ -69,8 +110,9 @@ class _HomePageState extends State<HomePage> {
         child: Container(
           width: 50,
           height: 50,
+          margin: const EdgeInsets.only(bottom: 10),
           decoration: const BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(8)),
+            borderRadius: BorderRadius.all(Radius.circular(12)),
             color: Colors.white,
             boxShadow: [
               BoxShadow(
@@ -84,16 +126,26 @@ class _HomePageState extends State<HomePage> {
             color: Colors.transparent,
             child: InkWell(
               customBorder: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(8)),
+                borderRadius: BorderRadius.all(Radius.circular(12)),
               ),
               onTap: () {
-                controller.jumpToPage(position);
+                widget._tabController.animateTo(position);
+                _rotateIcon();
               },
-              child: Icon(
-                icon,
-                size: 24,
-                color: Colors.black,
-              ),
+              child: widget._tabController.index == position
+                  ? RotationTransition(
+                      turns: _rotateAnimation,
+                      child: Icon(
+                        icon,
+                        size: 32,
+                        color: Colors.black,
+                      ),
+                    )
+                  : Icon(
+                      icon,
+                      size: 32,
+                      color: Colors.black,
+                    ),
             ),
           ),
         ),
@@ -103,22 +155,30 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildBottomTabItem(int position, String title, IconData icon) {
     return Expanded(
-        child: Padding(
-      padding: const EdgeInsets.only(top: 10),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           customBorder: const CircleBorder(),
           onTap: () {
-            controller.jumpToPage(position);
+            widget._tabController.animateTo(position);
+            _rotateIcon();
           },
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                icon,
-                color: Colors.black,
-              ),
+              const SizedBox(height: 10),
+              widget._tabController.index == position
+                  ? RotationTransition(
+                      turns: _rotateAnimation,
+                      child: Icon(
+                        icon,
+                        color: Colors.black,
+                      ),
+                    )
+                  : Icon(
+                      icon,
+                      color: Colors.black,
+                    ),
               Text(
                 title,
                 textAlign: TextAlign.center,
@@ -132,7 +192,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ),
-    ));
+    );
   }
 }
 
@@ -154,14 +214,24 @@ class _BottomBarPaint extends CustomPainter {
   Path _createMainPath(Path path, Size size) {
     final centerX = size.width / 2;
     return path
-      ..lineTo(0, 10)
-      ..lineTo(centerX - 40, 10)
-      ..quadraticBezierTo(centerX - 35, 10, centerX - 35, 5)
-      ..quadraticBezierTo(centerX - 35, 0, centerX - 30, 0)
-      ..lineTo(centerX + 30, 0)
-      ..quadraticBezierTo(centerX + 35, 0, centerX + 35, 5)
-      ..quadraticBezierTo(centerX + 35, 10, centerX + 40, 10)
-      ..lineTo(size.width, 10);
+      // ..lineTo(0, 10)
+      // ..lineTo(centerX - 40, 10)
+      // ..quadraticBezierTo(centerX - 35, 10, centerX - 35, 5)
+      // ..quadraticBezierTo(centerX - 35, 0, centerX - 30, 0)
+      // ..lineTo(centerX + 30, 0)
+      // ..quadraticBezierTo(centerX + 35, 0, centerX + 35, 5)
+      // ..quadraticBezierTo(centerX + 35, 10, centerX + 40, 10)
+      // ..lineTo(size.width, 10);
+      ..lineTo(0, 0)
+      ..lineTo(centerX - 50, 0)
+      ..quadraticBezierTo(centerX - 30, 0, centerX - 30, 20)
+      ..lineTo(centerX - 30, size.height - 25)
+      ..quadraticBezierTo(centerX - 30, size.height - 5, centerX - 10, size.height - 5)
+      ..lineTo(centerX + 10, size.height - 5)
+      ..quadraticBezierTo(centerX + 30, size.height - 5, centerX + 30, size.height - 25)
+      ..lineTo(centerX + 30, 20)
+      ..quadraticBezierTo(centerX + 30, 0, centerX + 50, 0)
+      ..lineTo(size.width, 0);
   }
 
   @override

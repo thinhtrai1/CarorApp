@@ -1,4 +1,5 @@
-import 'package:caror/ui/register/register.dart';
+import 'package:caror/themes/util.dart';
+import 'package:caror/ui/login/login.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/data_service.dart';
@@ -7,22 +8,28 @@ import '../../themes/theme.dart';
 import '../../widget/widget.dart';
 import '../home/home.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({Key? key}) : super(key: key);
+class RegisterPage extends StatefulWidget {
+  const RegisterPage({Key? key}) : super(key: key);
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<RegisterPage> createState() => _RegisterPagePageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _RegisterPagePageState extends State<RegisterPage> {
   bool _passwordVisible = false;
-  final _usernameController = TextEditingController(text: 'thinhtrai1');
-  final _passwordController = TextEditingController(text: '1');
+  final _usernameController = TextEditingController(text: '');
+  final _passwordController = TextEditingController(text: '');
+  final _emailController = TextEditingController(text: '');
+  final _firstnameController = TextEditingController(text: '');
+  final _lastnameController = TextEditingController(text: '');
 
   @override
   void dispose() {
     _usernameController.dispose();
     _passwordController.dispose();
+    _emailController.dispose();
+    _firstnameController.dispose();
+    _lastnameController.dispose();
     super.dispose();
   }
 
@@ -31,11 +38,12 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       body: CommonBackgroundContainer(
         padding: const EdgeInsets.only(left: 32, right: 32, top: 64),
+        headerHeight: 120,
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
           child: Column(
             children: [
-              const CommonTitleText('Sign In'),
+              const CommonTitleText('Sign Up'),
               const SizedBox(height: 32),
               LoginTextFieldBackground(
                 controller: _usernameController,
@@ -65,17 +73,33 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
               ),
-              const SizedBox(height: 4),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  child: const Text(
-                    "Forgot password?",
-                  ),
-                  onPressed: () {},
-                ),
+              const SizedBox(height: 16),
+              LoginTextFieldBackground(
+                controller: _emailController,
+                label: 'Email',
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Flexible(
+                    child: LoginTextFieldBackground(
+                      controller: _firstnameController,
+                      label: 'Firstname',
+                      textCapitalization: TextCapitalization.words,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Flexible(
+                    child: LoginTextFieldBackground(
+                      controller: _lastnameController,
+                      label: 'Lastname',
+                      textCapitalization: TextCapitalization.words,
+                      textInputAction: TextInputAction.done,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 48),
               ElevatedButton(
                 style: ButtonStyle(
                   shape: MaterialStateProperty.all(
@@ -88,7 +112,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 child: const Text(
-                  "Sign In",
+                  "Sign Up",
                   style: TextStyle(
                     fontFamily: "Montserrat",
                     fontSize: 20,
@@ -99,12 +123,6 @@ class _LoginPageState extends State<LoginPage> {
                   _doValidate();
                 },
               ),
-              const SizedBox(height: 24),
-              TextButton(
-                child: const Text("Or register an account"),
-                onPressed: () => Navigator.of(context).push(createRoute(const RegisterPage())),
-              ),
-              const SizedBox(height: 24),
             ],
           ),
         ),
@@ -119,13 +137,31 @@ class _LoginPageState extends State<LoginPage> {
     } else if (_passwordController.text.trim().isEmpty) {
       showToast('Please enter password!');
       return;
+    } else if (_emailController.text.trim().isEmpty) {
+      showToast('Please enter email!');
+      return;
+    } else if (!isValidEmail(_emailController.text.trim())) {
+      showToast('Please enter valid email!');
+      return;
+    } else if (_firstnameController.text.trim().isEmpty) {
+      showToast('Please enter firstname!');
+      return;
+    } else if (_lastnameController.text.trim().isEmpty) {
+      showToast('Please enter lastname!');
+      return;
     }
-    _login(_usernameController.text.trim(), _passwordController.text.trim());
+    _register(
+      _usernameController.text.trim(),
+      _passwordController.text.trim(),
+      _emailController.text.trim(),
+      _firstnameController.text.trim(),
+      _lastnameController.text.trim(),
+    );
   }
 
-  _login(String username, String password) {
-    showLoading(context, message: 'Signing in...');
-    DataService.login(username, password).then((user) {
+  _register(String username, String password, email, firstname, lastname) {
+    showLoading(context, message: 'Signing up...');
+    DataService.register(username, password, email, firstname, lastname).then((user) {
       Navigator.pop(context);
       if (user != null) {
         showToast('Welcome ' + user.lastName);
@@ -138,40 +174,4 @@ class _LoginPageState extends State<LoginPage> {
       }
     });
   }
-}
-
-class LoginTextFieldBackground extends Container {
-  LoginTextFieldBackground({
-    Key? key,
-    String? label,
-    TextInputAction? textInputAction = TextInputAction.next,
-    TextCapitalization textCapitalization = TextCapitalization.none,
-    TextEditingController? controller,
-    TextFormField? child,
-  }) : super(
-          key: key,
-          padding: const EdgeInsets.only(left: 16),
-          decoration: const BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(16)),
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: colorShadow,
-                offset: Offset(0, 0),
-                blurRadius: 2,
-              ),
-            ],
-          ),
-          child: child ??
-              TextFormField(
-                controller: controller,
-                textInputAction: textInputAction,
-                textCapitalization: textCapitalization,
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  labelText: label,
-                ),
-                style: const TextStyle(fontFamily: "Montserrat"),
-              ),
-        );
 }

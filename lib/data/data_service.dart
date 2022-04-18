@@ -32,7 +32,7 @@ class DataService {
       } else {
         message = 'An error occurred!';
       }
-      toast(message);
+      showToast(message);
     }
     return null;
   }
@@ -49,9 +49,33 @@ class DataService {
     return _getResponse(response, (json) => LoginResponse.fromJson(json).data);
   }
 
+  static Future<User?> register(String username, String password, String email, String firstname, String lastname) async {
+    final response = await http.post(
+      _getApiUrl('user/register'),
+      headers: _getHeader(type: 'application/x-www-form-urlencoded'),
+      body: {
+        'username': username,
+        'password': password,
+        'email': email,
+        'firstname': firstname,
+        'lastname': lastname,
+      },
+    );
+    return _getResponse(response, (json) => LoginResponse.fromJson(json).data);
+  }
+
   static Future<ProductListResponse?> getProducts(int page) async {
     final response = await http.get(
       _getApiUrl('product/$page'),
+      headers: _getHeader(),
+    );
+    // await Future.delayed(Duration(seconds: 5));
+    return _getResponse(response, (json) => ProductListResponse.fromJson(json));
+  }
+
+  static Future<ProductListResponse?> getProductDetail(int id) async {
+    final response = await http.get(
+      _getApiUrl('product?id=$id'),
       headers: _getHeader(),
     );
     // await Future.delayed(Duration(seconds: 5));
