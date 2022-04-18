@@ -2,8 +2,8 @@ import 'package:caror/themes/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
-class ScanQRTab extends StatelessWidget {
-  ScanQRTab({Key? key}) : super(key: key);
+class ScanQRPage extends StatelessWidget {
+  ScanQRPage({Key? key}) : super(key: key);
 
   final MobileScannerController _cameraController = MobileScannerController();
 

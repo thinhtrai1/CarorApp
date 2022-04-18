@@ -24,10 +24,9 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
   var _isInitial = true;
   var _currentPage = 0;
   var _isLoadMore = false;
-  final _chips = ['Featured Items', 'Trending', 'Favourite', 'New', 'Most recent'];
   final _products = List<Product>.empty(growable: true);
   final _scrollController = ScrollController();
-  late final _tabController = TabController(length: _chips.length, vsync: this);
+  late final _tabController = TabController(length: 5, vsync: this);
   late final _refreshIconController = AnimationController(duration: const Duration(milliseconds: 500), vsync: this)..repeat();
   List<Product>? _favourites;
 
@@ -77,7 +76,9 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _buildChipListView(),
+        CustomTabBar(
+          controller: _tabController,
+        ),
         Flexible(
           child: TabBarView(
             controller: _tabController,
@@ -91,64 +92,6 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
           ),
         ),
       ],
-    );
-  }
-
-  _buildChipListView() {
-    //TODO #HOWTO: Scroll selected item to center
-    //TODO #HOWTO: Update state when page change (avoid setState())
-    return SizedBox(
-      height: 48,
-      child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        scrollDirection: Axis.horizontal,
-        itemCount: _chips.length,
-        physics: const BouncingScrollPhysics(),
-        separatorBuilder: (BuildContext context, int index) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                _tabController.animateTo(index);
-              });
-            },
-            child: index == _tabController.index
-                ? Container(
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(Radius.circular(24)),
-                      color: Color(0xFF323232),
-                    ),
-                    alignment: Alignment.center,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      _chips[index],
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.white,
-                      ),
-                    ),
-                  )
-                : Container(
-                    decoration: BoxDecoration(
-                      borderRadius: const BorderRadius.all(Radius.circular(24)),
-                      border: Border.all(
-                        color: const Color(0xFF323232),
-                        width: 2,
-                      ),
-                    ),
-                    alignment: Alignment.center,
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    child: Text(
-                      _chips[index],
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFF323232),
-                      ),
-                    ),
-                  ),
-          );
-        },
-      ),
     );
   }
 
@@ -677,18 +620,18 @@ class _RecentItem extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(top: 8, left: 16, right: 16),
       decoration: const BoxDecoration(
-        borderRadius: BorderRadius.all(Radius.circular(8)),
+        borderRadius: BorderRadius.all(Radius.circular(16)),
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Color(0xFFE8E8E8),
+            color: colorShadow,
             offset: Offset(0, 2),
             blurRadius: 4,
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: const BorderRadius.all(Radius.circular(8)),
+        borderRadius: const BorderRadius.all(Radius.circular(16)),
         child: IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -774,18 +717,18 @@ class _NewItem extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(top: 8),
       decoration: const BoxDecoration(
-        borderRadius: BorderRadius.all(Radius.circular(8)),
+        borderRadius: BorderRadius.all(Radius.circular(16)),
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Color(0xFFE8E8E8),
+            color: colorShadow,
             offset: Offset(0, 2),
             blurRadius: 8,
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: const BorderRadius.all(Radius.circular(8)),
+        borderRadius: const BorderRadius.all(Radius.circular(16)),
         child: Column(
           children: [
             CommonWidget.image(
@@ -825,7 +768,7 @@ class _ProductShimmerItem extends StatelessWidget {
               width: 100,
               height: 100,
               decoration: const BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(8)),
+                borderRadius: BorderRadius.all(Radius.circular(16)),
                 color: colorShimmer,
               ),
             ),
@@ -917,4 +860,78 @@ class _TrendingShimmerItem extends StatelessWidget {
       ],
     );
   }
+}
+
+class CustomTabBar extends StatefulWidget {
+  CustomTabBar({Key? key, required this.controller}) : super(key: key);
+
+  final TabController controller;
+  final _chips = ['Featured Items', 'Trending', 'Favourite', 'New', 'Most recent'];
+
+  @override
+  State<StatefulWidget> createState() => _CustomTabBarState();
+}
+
+class _CustomTabBarState extends State<CustomTabBar> {
+  @override
+  void initState() {
+    widget.controller.addListener(() {
+      setState(() {});
+    });
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TabBar(
+      controller: widget.controller,
+      isScrollable: true,
+      indicatorColor: Colors.transparent,
+      padding: const EdgeInsets.only(left: 12, right: 12, top: 8),
+      labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+      tabs: _getTabs(),
+    );
+  }
+
+  List<Tab> _getTabs() => List.generate(
+        widget._chips.length,
+        (index) => Tab(
+          icon: widget.controller.index == index
+              ? Container(
+                  decoration: const BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(24)),
+                    color: colorDark,
+                  ),
+                  height: 32,
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    widget._chips[index],
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.white,
+                    ),
+                  ),
+                )
+              : Container(
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.all(Radius.circular(24)),
+                    border: Border.all(
+                      color: const Color(0xFF323232),
+                      width: 2,
+                    ),
+                  ),
+                  height: 32,
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  child: Text(
+                    widget._chips[index],
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF323232),
+                    ),
+                  ),
+                ),
+        ),
+      );
 }

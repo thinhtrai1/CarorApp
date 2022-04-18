@@ -49,3 +49,5 @@ void toast(String? msg) {
 
 const shimmerItemCount = 5;
 const colorShimmer = Color(0xFFd5d5d5);
+const colorShadow = Color(0xFFE8E8E8);
+const colorDark = Color(0xFF444444);
