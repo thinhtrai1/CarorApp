@@ -1,6 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:intl/intl.dart';
 
 class App {
   static final navigatorKey = GlobalKey<NavigatorState>();
@@ -32,16 +34,7 @@ class AppTheme {
 }
 
 Route createRoute(Widget widget) {
-  return PageRouteBuilder(
-    pageBuilder: (context, animation, secondaryAnimation) => widget,
-    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      var tween = Tween(begin: const Offset(1.0, 0.0), end: Offset.zero).chain(CurveTween(curve: Curves.ease));
-      return SlideTransition(
-        position: animation.drive(tween),
-        child: child,
-      );
-    },
-  );
+  return CupertinoPageRoute(builder: (_) => widget);
 }
 
 void showToast(String? msg) {
@@ -92,3 +85,6 @@ const shimmerItemCount = 5;
 const colorShimmer = Color(0xFFd5d5d5);
 const colorShadow = Color(0xFFE8E8E8);
 const colorDark = Color(0xFF444444);
+const colorLight = Color(0xFF888888);
+
+final dateFormat = DateFormat('MMMM dd \'at\' hh:mm', 'en_US');

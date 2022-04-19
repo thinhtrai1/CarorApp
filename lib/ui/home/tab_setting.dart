@@ -49,6 +49,7 @@ class _SettingTabState extends State<SettingTab> {
                 () => setState(() {
                       _isNotification = !_isNotification;
                     })),
+            _buildItemSetting('sound', const Icon(Icons.arrow_right_rounded), () {}),
             _buildItemSetting('language', const Icon(Icons.arrow_right_rounded), () {}),
             _buildItemSetting('information', const Icon(Icons.arrow_right_rounded), () {}),
             const SizedBox(height: 64),

@@ -128,7 +128,6 @@ class _LoginPageState extends State<LoginPage> {
     DataService.login(username, password).then((user) {
       Navigator.pop(context);
       if (user != null) {
-        showToast('Welcome ' + user.lastName);
         AppPreferences.setAccessToken(user.token);
         Navigator.pushAndRemoveUntil(
           context,

@@ -2,6 +2,7 @@ import 'package:caror/data/shared_preferences.dart';
 import 'package:caror/themes/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'home/home.dart';
 
@@ -14,6 +15,7 @@ void main() async {
       systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
+  initializeDateFormatting();
   runApp(const MyApp());
 }
 

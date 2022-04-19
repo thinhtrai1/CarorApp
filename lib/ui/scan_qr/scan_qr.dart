@@ -79,7 +79,7 @@ class _ScanQRPageState extends State<ScanQRPage> {
             height: 64,
             child: Material(
               shape: const CircleBorder(),
-              color: const Color(0x80000000),
+              color: Color(0x4DFFFFFF),
               child: InkWell(
                 customBorder: const CircleBorder(),
                 child: const Icon(
@@ -101,7 +101,7 @@ class _ScanQRPageState extends State<ScanQRPage> {
             height: 64,
             child: Material(
               shape: const CircleBorder(),
-              color: const Color(0x80000000),
+              color: Color(0x4DFFFFFF),
               child: InkWell(
                 customBorder: const CircleBorder(),
                 child: const Icon(

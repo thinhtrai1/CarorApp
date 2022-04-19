@@ -24,13 +24,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
+      body: Column(
         children: [
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 60,
+          Expanded(
             child: TabBarView(
               controller: _tabController,
               children: const [
@@ -42,15 +38,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               ],
             ),
           ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: 60,
-            child: CustomPaint(
-              painter: _BottomBarPaint(),
-              child: _BottomBar(_tabController),
-            ),
+          CustomPaint(
+            painter: _BottomBarPaint(),
+            child: _BottomBar(_tabController),
           ),
         ],
       ),
@@ -91,16 +81,18 @@ class _BottomBarState extends State<_BottomBar> with SingleTickerProviderStateMi
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        const SizedBox(width: 16),
-        _buildBottomTabItem(0, 'Home', Icons.home_rounded),
-        _buildBottomTabItem(1, 'Forum', Icons.camera_rounded),
-        _buildBottomTabMiddleItem(2, 'Cart', Icons.shopping_cart_rounded),
-        _buildBottomTabItem(3, 'Chat', Icons.chat_rounded),
-        _buildBottomTabItem(4, 'Settings', Icons.settings_rounded),
-        const SizedBox(width: 16),
-      ],
+    return IntrinsicHeight(
+      child: Row(
+        children: [
+          const SizedBox(width: 16),
+          _buildBottomTabItem(0, 'Home', Icons.home_rounded),
+          _buildBottomTabItem(1, 'Forum', Icons.camera_rounded),
+          _buildBottomTabMiddleItem(2, 'Cart', Icons.shopping_cart_rounded),
+          _buildBottomTabItem(3, 'Chat', Icons.chat_rounded),
+          _buildBottomTabItem(4, 'Settings', Icons.settings_rounded),
+          const SizedBox(width: 16),
+        ],
+      ),
     );
   }
 
@@ -108,9 +100,9 @@ class _BottomBarState extends State<_BottomBar> with SingleTickerProviderStateMi
     return Expanded(
       child: Center(
         child: Container(
-          width: 50,
+          width: 60,
           height: 50,
-          margin: const EdgeInsets.only(bottom: 10),
+          margin: const EdgeInsets.only(bottom: 5),
           decoration: const BoxDecoration(
             borderRadius: BorderRadius.all(Radius.circular(12)),
             color: Colors.white,
@@ -123,7 +115,7 @@ class _BottomBarState extends State<_BottomBar> with SingleTickerProviderStateMi
             ],
           ),
           child: Material(
-            color: Colors.transparent,
+            type: MaterialType.transparency,
             child: InkWell(
               customBorder: const RoundedRectangleBorder(
                 borderRadius: BorderRadius.all(Radius.circular(12)),
@@ -156,7 +148,7 @@ class _BottomBarState extends State<_BottomBar> with SingleTickerProviderStateMi
   Widget _buildBottomTabItem(int position, String title, IconData icon) {
     return Expanded(
       child: Material(
-        color: Colors.transparent,
+        type: MaterialType.transparency,
         child: InkWell(
           customBorder: const CircleBorder(),
           onTap: () {
@@ -214,23 +206,15 @@ class _BottomBarPaint extends CustomPainter {
   Path _createMainPath(Path path, Size size) {
     final centerX = size.width / 2;
     return path
-      // ..lineTo(0, 10)
-      // ..lineTo(centerX - 40, 10)
-      // ..quadraticBezierTo(centerX - 35, 10, centerX - 35, 5)
-      // ..quadraticBezierTo(centerX - 35, 0, centerX - 30, 0)
-      // ..lineTo(centerX + 30, 0)
-      // ..quadraticBezierTo(centerX + 35, 0, centerX + 35, 5)
-      // ..quadraticBezierTo(centerX + 35, 10, centerX + 40, 10)
-      // ..lineTo(size.width, 10);
       ..lineTo(0, 0)
-      ..lineTo(centerX - 50, 0)
-      ..quadraticBezierTo(centerX - 30, 0, centerX - 30, 20)
-      ..lineTo(centerX - 30, size.height - 25)
-      ..quadraticBezierTo(centerX - 30, size.height - 5, centerX - 10, size.height - 5)
-      ..lineTo(centerX + 10, size.height - 5)
-      ..quadraticBezierTo(centerX + 30, size.height - 5, centerX + 30, size.height - 25)
-      ..lineTo(centerX + 30, 20)
-      ..quadraticBezierTo(centerX + 30, 0, centerX + 50, 0)
+      ..lineTo(centerX - 55, 0)
+      ..quadraticBezierTo(centerX - 35, 0, centerX - 35, 20)
+      ..lineTo(centerX - 35, size.height - 20)
+      ..quadraticBezierTo(centerX - 35, size.height, centerX - 15, size.height)
+      ..lineTo(centerX + 15, size.height)
+      ..quadraticBezierTo(centerX + 35, size.height, centerX + 35, size.height - 20)
+      ..lineTo(centerX + 35, 20)
+      ..quadraticBezierTo(centerX + 35, 0, centerX + 55, 0)
       ..lineTo(size.width, 0);
   }
 

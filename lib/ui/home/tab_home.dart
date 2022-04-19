@@ -6,7 +6,6 @@ import 'package:caror/themes/theme.dart';
 import 'package:caror/themes/number.dart';
 import 'package:caror/widget/parallax.dart';
 import 'package:caror/widget/shimmer_loading.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -104,58 +103,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
         controller: controller,
         physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         slivers: [
-          if (!_isInitial)
-            CupertinoSliverRefreshControl(
-              onRefresh: () async {
-                _getProducts(true);
-                await Future<void>.delayed(
-                  const Duration(milliseconds: 1000),
-                );
-              },
-              builder: (c, refreshState, pulledExtent, d, e) {
-                return Stack(
-                  children: <Widget>[
-                    Positioned(
-                      bottom: pulledExtent / 7,
-                      left: 0.0,
-                      right: 0.0,
-                      child: refreshState == RefreshIndicatorMode.drag
-                          ? Column(
-                              children: [
-                                const Text('Pulling to refresh...'),
-                                SizedBox(height: max(0, pulledExtent / 5 - 7)),
-                                AnimatedSwitcher(
-                                  duration: const Duration(milliseconds: 300),
-                                  transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
-                                  child: const Icon(Icons.arrow_circle_down_rounded, key: ValueKey('icon1')),
-                                ),
-                              ],
-                            )
-                          : Column(
-                              children: [
-                                const Text('Refreshing...'),
-                                SizedBox(height: max(0, pulledExtent / 5 - 7)),
-                                AnimatedSwitcher(
-                                  duration: const Duration(milliseconds: 300),
-                                  transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
-                                  child: AnimatedBuilder(
-                                    animation: _refreshIconController,
-                                    builder: (_, child) {
-                                      return Transform.rotate(
-                                        angle: _refreshIconController.value * 2 * pi,
-                                        child: child,
-                                      );
-                                    },
-                                    child: const Icon(Icons.cached_rounded, key: ValueKey('icon2')),
-                                  ),
-                                ),
-                              ],
-                            ),
-                    ),
-                  ],
-                );
-              },
-            ),
+          if (!_isInitial) CommonSliverRefreshControl(_refreshIconController, onRefresh: () async => _getProducts(true)),
           sliverChild,
           if (sliverChild2 != null) sliverChild2,
           const SliverToBoxAdapter(
@@ -245,13 +193,11 @@ class _ListViewFeature extends StatelessWidget {
               itemBuilder: (context, index) {
                 if (_products.isEmpty || _isShimmerIndex(index % _products.length)) {
                   return ShimmerLoading(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 8, left: 8, right: 8),
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          borderRadius: BorderRadius.all(Radius.circular(16)),
-                          color: colorShimmer,
-                        ),
+                    child: Container(
+                      margin: const EdgeInsets.only(top: 8, left: 8, right: 8),
+                      decoration: const BoxDecoration(
+                        borderRadius: BorderRadius.all(Radius.circular(16)),
+                        color: colorShimmer,
                       ),
                     ),
                   );
@@ -365,13 +311,11 @@ class _FeatureList2State extends State<_FeatureList2> {
         itemBuilder: (context, index) {
           if (widget._products.isEmpty || widget._isShimmerIndex(index % widget._products.length)) {
             return ShimmerLoading(
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Container(
-                  decoration: const BoxDecoration(
-                    borderRadius: BorderRadius.all(Radius.circular(16)),
-                    color: colorShimmer,
-                  ),
+              child: Container(
+                margin: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(16)),
+                  color: colorShimmer,
                 ),
               ),
             );
