@@ -31,8 +31,13 @@ class _SettingTabState extends State<SettingTab> {
           children: [
             const CommonTitleText('Setting'),
             const SizedBox(height: 16),
-            _buildItemSetting('login', const Icon(Icons.arrow_right_rounded), () => Navigator.of(context).push(createRoute(const LoginPage()))),
-            _buildItemSetting('scan qr', const Icon(Icons.arrow_right_rounded), () => Navigator.of(context).push(createRoute(const ScanQRPage()))),
+            _buildItemSetting('login', const Icon(Icons.arrow_right_rounded), () {
+              //TODO #HOWTO: Why don't have exit transition?
+              Navigator.of(context).push(createRoute(const LoginPage()));
+            }),
+            _buildItemSetting('scan qr', const Icon(Icons.arrow_right_rounded), () {
+              Navigator.of(context).push(createRoute(const ScanQRPage()));
+            }),
             _buildItemSetting(
                 'notification',
                 Transform.scale(

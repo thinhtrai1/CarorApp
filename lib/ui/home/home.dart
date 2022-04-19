@@ -1,4 +1,4 @@
-import 'package:caror/ui/home/tab_card.dart';
+import 'package:caror/ui/home/tab_cart.dart';
 import 'package:caror/ui/home/tab_chat.dart';
 import 'package:caror/ui/home/tab_forum.dart';
 import 'package:caror/ui/home/tab_home.dart';
@@ -32,7 +32,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               children: const [
                 HomeTab(),
                 ForumTab(),
-                CardTab(),
+                CartTab(),
                 ChatTab(),
                 SettingTab(),
               ],
@@ -65,8 +65,7 @@ class _BottomBarState extends State<_BottomBar> with SingleTickerProviderStateMi
   void initState() {
     super.initState();
     _animationController = AnimationController(duration: const Duration(milliseconds: 200), vsync: this);
-    _rotateAnimation = Tween<double>(begin: 0, end: 0.125).animate(_animationController)..addListener(() => setState(() {}));
-    widget._tabController.addListener(() => _rotateIcon());
+    _rotateAnimation = Tween<double>(begin: 0, end: 0.1).animate(_animationController)..addListener(() => setState(() {}));
   }
 
   _rotateIcon() {
@@ -84,13 +83,13 @@ class _BottomBarState extends State<_BottomBar> with SingleTickerProviderStateMi
     return IntrinsicHeight(
       child: Row(
         children: [
-          const SizedBox(width: 16),
+          const SizedBox(width: 8),
           _buildBottomTabItem(0, 'Home', Icons.home_rounded),
-          _buildBottomTabItem(1, 'Forum', Icons.camera_rounded),
+          _buildBottomTabItem(1, 'Universe', Icons.camera_rounded),
           _buildBottomTabMiddleItem(2, 'Cart', Icons.shopping_cart_rounded),
           _buildBottomTabItem(3, 'Chat', Icons.chat_rounded),
           _buildBottomTabItem(4, 'Settings', Icons.settings_rounded),
-          const SizedBox(width: 16),
+          const SizedBox(width: 8),
         ],
       ),
     );

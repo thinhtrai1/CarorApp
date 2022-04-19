@@ -34,9 +34,7 @@ class _ForumTabState extends State<ForumTab> with SingleTickerProviderStateMixin
         controller: _scrollController,
         physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         slivers: [
-          // SliverToBoxAdapter(
-          //     child: SizedBox(height: _statusBarHeight + 16),
-          // ),
+          //TODO #HOWTO: Add Widget above CommonSliverRefreshControl
           if (!_isInitial)
             CommonSliverRefreshControl(_refreshIconController, onRefresh: () async {
               _getProducts(true);
@@ -150,7 +148,7 @@ class _ForumTabState extends State<ForumTab> with SingleTickerProviderStateMixin
                 color: colorShimmer,
               ),
               child: _isShimmerIndex(index)
-                  ? const SizedBox()
+                  ? null
                   : ClipRRect(
                       borderRadius: BorderRadius.circular(16),
                       child: Stack(

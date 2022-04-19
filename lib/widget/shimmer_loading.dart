@@ -58,7 +58,7 @@ class ShimmerState extends State<Shimmer> with SingleTickerProviderStateMixin {
         transform: _SlidingGradientTransform(slidePercent: _shimmerController.value),
       );
 
-  bool get isSized => (context.findRenderObject() as RenderBox).hasSize;
+  bool? get isSized => (context.findRenderObject() as RenderBox?)?.hasSize;
 
   Size get size => (context.findRenderObject() as RenderBox).size;
 
@@ -137,7 +137,7 @@ class _ShimmerLoadingState extends State<ShimmerLoading> {
 
     // Collect ancestor shimmer info.
     final shimmer = Shimmer.of(context)!;
-    if (!shimmer.isSized) {
+    if (shimmer.isSized != true) {
       // The ancestor Shimmer widget has not laid
       // itself out yet. Return an empty box.
       return const SizedBox();

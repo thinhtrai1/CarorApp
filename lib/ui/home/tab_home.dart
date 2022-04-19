@@ -470,7 +470,11 @@ class _ListViewFavouritesState extends State<_ListViewFavourites> {
             child: CommonIcon(Icons.delete_rounded, padding: 12, onPressed: () {
               expandedPosition = -1;
               widget.favourites!.removeAt(index);
-              listKey.currentState!.removeItem(index, (_, animation) => SizeTransition(sizeFactor: animation, child: _buildFavouriteItem(index, item)));
+              listKey.currentState!.removeItem(
+                index,
+                (_, animation) => SizeTransition(sizeFactor: animation, child: _buildFavouriteItem(index, item)),
+                duration: const Duration(milliseconds: 200),
+              );
             }),
           ),
           Positioned(
@@ -642,23 +646,20 @@ class _RecentItem extends StatelessWidget {
                       Text(
                         Number.priceFormat(product.price),
                         style: const TextStyle(
-                          color: Color(0xFFFF3D3D),
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(
-                        height: 2,
-                      ),
+                      const SizedBox(height: 2),
                       RatingBar.builder(
                         ignoreGestures: true,
                         initialRating: product.rate,
                         allowHalfRating: true,
                         itemCount: 5,
                         itemSize: 16,
-                        itemBuilder: (context, _) => Icon(
+                        itemBuilder: (context, _) => const Icon(
                           Icons.star_rounded,
-                          color: Colors.amber.shade900,
+                          color: Colors.black,
                         ),
                         onRatingUpdate: (rating) {},
                       ),

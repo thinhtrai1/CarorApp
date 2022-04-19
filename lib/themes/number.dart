@@ -5,7 +5,7 @@ class Number {
   static final NumberFormat _format = NumberFormat("#,###.##", "en_US");
 
   static String priceFormat(num n) {
-    return _format.format(n) + 'đ';
+    return _format.format(n) + ' đ';
   }
 
   static double getScreenWidth(BuildContext context) => MediaQuery.of(context).size.width;
