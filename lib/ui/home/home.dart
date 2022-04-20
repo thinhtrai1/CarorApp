@@ -1,6 +1,6 @@
 import 'package:caror/ui/home/tab_cart.dart';
 import 'package:caror/ui/home/tab_chat.dart';
-import 'package:caror/ui/home/tab_forum.dart';
+import 'package:caror/ui/home/tab_universe.dart';
 import 'package:caror/ui/home/tab_home.dart';
 import 'package:caror/ui/home/tab_setting.dart';
 import 'package:flutter/material.dart';
@@ -31,7 +31,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               controller: _tabController,
               children: const [
                 HomeTab(),
-                ForumTab(),
+                UniverseTab(),
                 CartTab(),
                 ChatTab(),
                 SettingTab(),

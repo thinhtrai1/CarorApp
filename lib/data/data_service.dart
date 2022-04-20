@@ -69,7 +69,6 @@ class DataService {
       _getApiUrl('product/$page'),
       headers: _getHeader(),
     );
-    // await Future.delayed(Duration(seconds: 5));
     return _getResponse(response, (json) => ProductListResponse.fromJson(json));
   }
 
@@ -78,7 +77,6 @@ class DataService {
       _getApiUrl('product?id=$id'),
       headers: _getHeader(),
     );
-    // await Future.delayed(Duration(seconds: 5));
     return _getResponse(response, (json) => ProductListResponse.fromJson(json));
   }
 }

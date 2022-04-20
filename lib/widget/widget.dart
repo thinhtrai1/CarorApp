@@ -39,16 +39,23 @@ class CommonWidget {
 }
 
 class CommonIcon extends Material {
-  CommonIcon(IconData icon, {Key? key, double padding = 20, GestureTapCallback? onPressed})
-      : super(
+  CommonIcon(
+    IconData icon, {
+    Key? key,
+    double padding = 20,
+    Color color = Colors.black,
+    Color backgroundColor = Colors.transparent,
+    GestureTapCallback? onPressed,
+  }) : super(
           key: key,
-          color: Colors.transparent,
+          color: backgroundColor,
+          shape: const CircleBorder(),
           child: InkWell(
             customBorder: const CircleBorder(),
             onTap: onPressed,
             child: Padding(
               padding: EdgeInsets.all(padding),
-              child: Icon(icon),
+              child: Icon(icon, color: color),
             ),
           ),
         );

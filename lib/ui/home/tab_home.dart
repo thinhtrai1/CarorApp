@@ -4,6 +4,7 @@ import 'package:caror/data/data_service.dart';
 import 'package:caror/entity/Product.dart';
 import 'package:caror/themes/theme.dart';
 import 'package:caror/themes/number.dart';
+import 'package:caror/ui/product_detail/product_detail.dart';
 import 'package:caror/widget/parallax.dart';
 import 'package:caror/widget/shimmer_loading.dart';
 import 'package:flutter/material.dart';
@@ -71,6 +72,10 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
     });
   }
 
+  _onItemPressed(Product product, {String? heroTag}) {
+    Navigator.of(context).push(createRoute(ProductDetailPage(product, heroTag ?? product.id)));
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -83,9 +88,9 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
             child: TabBarView(
               controller: _tabController,
               children: [
-                _buildContentView(_ListViewFeature(_products, _isShimmerIndex), _scrollController, sliverChild2: _buildListViewFeature3()),
+                _buildContentView(_ListViewFeature(_products, _isShimmerIndex, onPressed: _onItemPressed), _scrollController, sliverChild2: _buildListViewFeature3()),
                 _buildContentView(_buildListViewTrending(), _scrollController),
-                _buildContentView(_ListViewFavourites(favourites: _favourites), null),
+                _buildContentView(_ListViewFavourites(onPressed: _onItemPressed, favourites: _favourites), null),
                 _buildContentView(_buildListViewNew(), _scrollController),
                 _buildContentView(_buildListViewRecent(), _scrollController),
               ],
@@ -128,6 +133,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
               ? const ShimmerLoading(child: _ProductShimmerItem())
               : _RecentItem(
                   _products[index],
+                  onPressed: _onItemPressed,
                   offsetY: 0,
                 );
         },
@@ -140,7 +146,12 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
     return SliverList(
       delegate: SliverChildBuilderDelegate(
         (context, index) {
-          return _isShimmerIndex(index) ? const ShimmerLoading(child: _TrendingShimmerItem(marginHorizontal: 16)) : _TrendingItem(_products[index]);
+          return _isShimmerIndex(index)
+              ? const ShimmerLoading(child: _TrendingShimmerItem(marginHorizontal: 16))
+              : _TrendingItem(
+                  _products[index],
+                  onPressed: _onItemPressed,
+                );
         },
         childCount: _getItemCount(),
       ),
@@ -167,7 +178,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
     return SliverList(
       delegate: SliverChildBuilderDelegate(
         (context, index) {
-          return _isShimmerIndex(index) ? const ShimmerLoading(child: _ProductShimmerItem()) : _RecentItem(_products[index]);
+          return _isShimmerIndex(index) ? const ShimmerLoading(child: _ProductShimmerItem()) : _RecentItem(_products[index], onPressed: _onItemPressed);
         },
         childCount: _getItemCount(),
       ),
@@ -176,9 +187,10 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
 }
 
 class _ListViewFeature extends StatelessWidget {
-  const _ListViewFeature(this._products, this._isShimmerIndex, {Key? key}) : super(key: key);
+  const _ListViewFeature(this._products, this._isShimmerIndex, {Key? key, this.onPressed}) : super(key: key);
 
   final List<Product> _products;
+  final Function(Product, {String? heroTag})? onPressed;
   final bool Function(int) _isShimmerIndex;
 
   @override
@@ -202,12 +214,12 @@ class _ListViewFeature extends StatelessWidget {
                     ),
                   );
                 } else {
-                  return _FeatureItem1(_products[index % _products.length]);
+                  return _FeatureItem1(_products[index % _products.length], onPressed: onPressed);
                 }
               },
             ),
           ),
-          _FeatureList2(_products, _isShimmerIndex),
+          _FeatureList2(_products, _isShimmerIndex, onPressed: onPressed),
         ],
       ),
     );
@@ -215,22 +227,30 @@ class _ListViewFeature extends StatelessWidget {
 }
 
 class _FeatureItem1 extends StatelessWidget {
-  _FeatureItem1(this.product, {Key? key}) : super(key: key);
+  _FeatureItem1(this.product, {Key? key, this.onPressed}) : super(key: key);
 
   final Product product;
+  final Function(Product, {String? heroTag})? onPressed;
   final GlobalKey _backgroundImageKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
+    final heroTag = product.id.toString() + '-1';
     return Padding(
       padding: const EdgeInsets.only(left: 8, right: 8, top: 8),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Stack(
-          children: [
-            _buildParallaxBackground(context),
-            _buildTitle(),
-          ],
+      child: GestureDetector(
+        onTap: () => onPressed?.call(product, heroTag: heroTag),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Stack(
+            children: [
+              Hero(
+                tag: heroTag,
+                child: _buildParallaxBackground(context),
+              ),
+              _buildTitle(),
+            ],
+          ),
         ),
       ),
     );
@@ -278,9 +298,10 @@ class _FeatureItem1 extends StatelessWidget {
 }
 
 class _FeatureList2 extends StatefulWidget {
-  _FeatureList2(this._products, this._isShimmerIndex, {Key? key}) : super(key: key);
+  _FeatureList2(this._products, this._isShimmerIndex, {Key? key, this.onPressed}) : super(key: key);
 
   final List<Product> _products;
+  final Function(Product, {String? heroTag})? onPressed;
   final bool Function(int) _isShimmerIndex;
   final _pageController = PageController(initialPage: 505, viewportFraction: 0.8);
 
@@ -330,76 +351,83 @@ class _FeatureList2State extends State<_FeatureList2> {
   _buildFeatureItem2(int index) {
     final product = widget._products[index % widget._products.length];
     final titles = product.name.split(' - ');
+    final heroTag = product.id.toString() + '-2';
     return Padding(
       padding: const EdgeInsets.all(8),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Stack(
-          children: [
-            CommonWidget.image(
-              product.image,
-              fit: BoxFit.cover,
-              width: double.infinity,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  AnimatedSlide(
-                    offset: _currentPage == index ? const Offset(0.0, 0.0) : const Offset(0.1, 0.0),
-                    duration: const Duration(milliseconds: 700),
-                    child: AnimatedOpacity(
-                      opacity: _currentPage == index ? 1 : 0,
-                      duration: const Duration(milliseconds: 1000),
-                      child: Text(
-                        titles[0],
-                        maxLines: 1,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          shadows: <Shadow>[
-                            Shadow(
-                              offset: Offset(2, 2),
-                              blurRadius: 4,
-                              color: Colors.black,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 4,
-                  ),
-                  AnimatedSlide(
-                    offset: _currentPage == index ? const Offset(0.0, 0.0) : const Offset(-0.1, 0.0),
-                    duration: const Duration(milliseconds: 700),
-                    child: AnimatedOpacity(
-                      opacity: _currentPage == index ? 1 : 0,
-                      duration: const Duration(milliseconds: 1000),
-                      child: Text(
-                        titles.length > 1 ? titles[1] : titles[0],
-                        maxLines: 1,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          shadows: <Shadow>[
-                            Shadow(
-                              offset: Offset(2, 2),
-                              blurRadius: 4,
-                              color: Colors.black,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+      child: GestureDetector(
+        onTap: () => widget.onPressed?.call(product, heroTag: heroTag),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Stack(
+            children: [
+              Hero(
+                tag: heroTag,
+                child: CommonWidget.image(
+                  product.image,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                ),
               ),
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    AnimatedSlide(
+                      offset: _currentPage == index ? const Offset(0.0, 0.0) : const Offset(0.1, 0.0),
+                      duration: const Duration(milliseconds: 700),
+                      child: AnimatedOpacity(
+                        opacity: _currentPage == index ? 1 : 0,
+                        duration: const Duration(milliseconds: 1000),
+                        child: Text(
+                          titles[0],
+                          maxLines: 1,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            shadows: <Shadow>[
+                              Shadow(
+                                offset: Offset(2, 2),
+                                blurRadius: 4,
+                                color: Colors.black,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 4,
+                    ),
+                    AnimatedSlide(
+                      offset: _currentPage == index ? const Offset(0.0, 0.0) : const Offset(-0.1, 0.0),
+                      duration: const Duration(milliseconds: 700),
+                      child: AnimatedOpacity(
+                        opacity: _currentPage == index ? 1 : 0,
+                        duration: const Duration(milliseconds: 1000),
+                        child: Text(
+                          titles.length > 1 ? titles[1] : titles[0],
+                          maxLines: 1,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            shadows: <Shadow>[
+                              Shadow(
+                                offset: Offset(2, 2),
+                                blurRadius: 4,
+                                color: Colors.black,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -407,9 +435,10 @@ class _FeatureList2State extends State<_FeatureList2> {
 }
 
 class _ListViewFavourites extends StatefulWidget {
-  const _ListViewFavourites({Key? key, required this.favourites}) : super(key: key);
+  const _ListViewFavourites({Key? key, this.onPressed, required this.favourites}) : super(key: key);
 
   final List<Product>? favourites;
+  final Function(Product)? onPressed;
 
   @override
   State<StatefulWidget> createState() => _ListViewFavouritesState();
@@ -463,7 +492,7 @@ class _ListViewFavouritesState extends State<_ListViewFavourites> {
       },
       child: Stack(
         children: [
-          _RecentItem(item, isExpanded: expandedPosition == index),
+          _RecentItem(item, onPressed: widget.onPressed, isExpanded: expandedPosition == index),
           Positioned(
             bottom: 0,
             right: 16,
@@ -497,9 +526,10 @@ class _ListViewFavouritesState extends State<_ListViewFavourites> {
 }
 
 class _TrendingItem extends StatelessWidget {
-  _TrendingItem(this.product, {Key? key}) : super(key: key);
+  _TrendingItem(this.product, {Key? key, this.onPressed}) : super(key: key);
 
   final Product product;
+  final Function(Product)? onPressed;
   final GlobalKey _backgroundImageKey = GlobalKey();
 
   @override
@@ -522,20 +552,26 @@ class _TrendingItem extends StatelessWidget {
   }
 
   Widget _buildParallaxBackground(BuildContext context) {
-    return Flow(
-      delegate: ParallaxFlowVerticalDelegate(
-        scrollable: Scrollable.of(context)!,
-        listItemContext: context,
-        backgroundImageKey: _backgroundImageKey,
-      ),
-      children: [
-        CommonWidget.image(
-          product.image,
-          key: _backgroundImageKey,
-          fit: BoxFit.cover,
-          shimmerHeight: Number.getScreenWidth(context) * 3 / 8,
+    return GestureDetector(
+      onTap: () => onPressed?.call(product),
+      child: Hero(
+        tag: product.id,
+        child: Flow(
+          delegate: ParallaxFlowVerticalDelegate(
+            scrollable: Scrollable.of(context)!,
+            listItemContext: context,
+            backgroundImageKey: _backgroundImageKey,
+          ),
+          children: [
+            CommonWidget.image(
+              product.image,
+              key: _backgroundImageKey,
+              fit: BoxFit.cover,
+              shimmerHeight: Number.getScreenWidth(context) * 3 / 8,
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 
@@ -580,94 +616,106 @@ class _TrendingItem extends StatelessWidget {
 }
 
 class _RecentItem extends StatelessWidget {
-  const _RecentItem(this.product, {this.isExpanded = false, this.offsetY = 2}) : super();
+  const _RecentItem(
+    this.product, {
+    this.onPressed,
+    this.isExpanded = false,
+    this.offsetY = 2,
+  }) : super();
 
   final Product product;
   final bool isExpanded;
   final double offsetY;
+  final Function(Product)? onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(top: 8, left: 16, right: 16),
-      decoration: BoxDecoration(
-        borderRadius: const BorderRadius.all(Radius.circular(16)),
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: colorShadow,
-            offset: Offset(0, offsetY),
-            blurRadius: 4,
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.all(Radius.circular(16)),
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              CommonWidget.image(
-                product.thumbnail,
-                fit: BoxFit.cover,
-                width: 100,
-                height: 100,
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        product.name + ' \n',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        padding: isExpanded ? const EdgeInsets.only(top: 8, bottom: 16) : EdgeInsets.zero,
-                        child: isExpanded
-                            ? Text(
-                                product.description,
-                                textAlign: TextAlign.justify,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              )
-                            : const SizedBox(),
-                      ),
-                      const Spacer(),
-                      Text(
-                        Number.priceFormat(product.price),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      RatingBar.builder(
-                        ignoreGestures: true,
-                        initialRating: product.rate,
-                        allowHalfRating: true,
-                        itemCount: 5,
-                        itemSize: 16,
-                        itemBuilder: (context, _) => const Icon(
-                          Icons.star_rounded,
-                          color: Colors.black,
-                        ),
-                        onRatingUpdate: (rating) {},
-                      ),
-                    ],
+    return GestureDetector(
+      onTap: () => onPressed?.call(product),
+      child: Container(
+        margin: const EdgeInsets.only(top: 8, left: 16, right: 16),
+        decoration: BoxDecoration(
+          borderRadius: const BorderRadius.all(Radius.circular(16)),
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: colorShadow,
+              offset: Offset(0, offsetY),
+              blurRadius: 4,
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.all(Radius.circular(16)),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Hero(
+                  tag: product.id,
+                  child: CommonWidget.image(
+                    product.thumbnail,
+                    fit: BoxFit.cover,
+                    width: 100,
+                    height: 100,
                   ),
                 ),
-              ),
-            ],
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          product.name + '\n',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: isExpanded ? const EdgeInsets.only(top: 8, bottom: 16) : EdgeInsets.zero,
+                          child: isExpanded
+                              ? Text(
+                                  product.description,
+                                  textAlign: TextAlign.justify,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                )
+                              : null,
+                        ),
+                        const Spacer(),
+                        Text(
+                          Number.priceFormat(product.price),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        RatingBar.builder(
+                          ignoreGestures: true,
+                          initialRating: product.rate,
+                          allowHalfRating: true,
+                          itemCount: 5,
+                          itemSize: 16,
+                          itemBuilder: (context, _) => const Icon(
+                            Icons.star_rounded,
+                            color: Colors.black,
+                          ),
+                          onRatingUpdate: (rating) {},
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

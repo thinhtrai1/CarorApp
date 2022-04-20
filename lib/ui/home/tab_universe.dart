@@ -9,21 +9,20 @@ import '../../themes/theme.dart';
 import '../../widget/shimmer_loading.dart';
 import '../../widget/widget.dart';
 
-class ForumTab extends StatefulWidget {
-  const ForumTab({Key? key}) : super(key: key);
+class UniverseTab extends StatefulWidget {
+  const UniverseTab({Key? key}) : super(key: key);
 
   @override
-  State<ForumTab> createState() => _ForumTabState();
+  State<UniverseTab> createState() => _UniverseTabState();
 }
 
-class _ForumTabState extends State<ForumTab> with SingleTickerProviderStateMixin {
+class _UniverseTabState extends State<UniverseTab> with SingleTickerProviderStateMixin {
   var _isInitial = true;
   var _currentPage = 0;
   var _isLoadMore = false;
   late final _statusBarHeight = Number.getStatusBarHeight(context);
   final _products = List<Product>.empty(growable: true);
   final _shortController = ScrollController();
-  final _scrollController = ScrollController();
   late final _refreshIconController = AnimationController(duration: const Duration(milliseconds: 500), vsync: this)..repeat();
 
   @override
@@ -31,7 +30,6 @@ class _ForumTabState extends State<ForumTab> with SingleTickerProviderStateMixin
     return Shimmer(
       linearGradient: Shimmer.shimmerGradient,
       child: CustomScrollView(
-        controller: _scrollController,
         physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         slivers: [
           //TODO #HOWTO: Add Widget above CommonSliverRefreshControl
@@ -104,7 +102,6 @@ class _ForumTabState extends State<ForumTab> with SingleTickerProviderStateMixin
   @override
   void dispose() {
     _shortController.dispose();
-    _scrollController.dispose();
     _refreshIconController.dispose();
     super.dispose();
   }
@@ -134,7 +131,9 @@ class _ForumTabState extends State<ForumTab> with SingleTickerProviderStateMixin
     return SizedBox(
       height: 140,
       child: ListView.builder(
+        controller: _shortController,
         padding: const EdgeInsets.symmetric(horizontal: 8),
+        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         itemCount: _getItemCount(),
         scrollDirection: Axis.horizontal,
         itemBuilder: (context, index) {
@@ -203,7 +202,7 @@ class _ForumTabState extends State<ForumTab> with SingleTickerProviderStateMixin
         (context, index) {
           return _isShimmerIndex(index) ? _buildPostsShimmerItem() : _buildPostsItem(_products[index]);
         },
-        childCount: _getItemCount(),
+        childCount: _isInitial ? shimmerItemCount : _products.length,
       ),
     );
   }

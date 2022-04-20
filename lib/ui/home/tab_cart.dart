@@ -59,7 +59,7 @@ class _CartTabState extends State<CartTab> {
   }
 
   Widget _buildContent() {
-    final subtotal = _products.map((e) => e.price * e.qty).reduce((a, b) => a + b);
+    final subtotal = _products.isEmpty ? 0 : _products.map((e) => e.price * e.qty).reduce((a, b) => a + b);
     final tax = subtotal * 0.1;
     final shipping = subtotal > 0 ? 75000 : 0;
     final total = subtotal + tax + shipping;
@@ -82,7 +82,7 @@ class _CartTabState extends State<CartTab> {
             ),
           ),
         ),
-        _buildCartListView(),
+        if (_products.isNotEmpty) _buildCartListView(),
         SliverToBoxAdapter(
           child: Container(
             margin: const EdgeInsets.only(top: 24),
@@ -203,7 +203,6 @@ class _CartTabState extends State<CartTab> {
                     child: const Text(
                       "Checkout",
                       style: TextStyle(
-                        fontFamily: "Montserrat",
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -234,6 +233,7 @@ class _CartTabState extends State<CartTab> {
       onDismissed: (_) {
         _products.removeAt(index);
         _listKey.currentState!.removeItem(index, (_, animation) => const SizedBox());
+        setState(() {});
       },
       key: Key(product.id.toString()),
       background: Row(
@@ -297,9 +297,16 @@ class _CartTabState extends State<CartTab> {
                         _products.removeAt(index);
                         _listKey.currentState!.removeItem(
                           index,
-                          (_, animation) => SizeTransition(sizeFactor: animation, child: _buildCartItem(index, product)),
+                          (_, animation) => FadeTransition(
+                            opacity: animation,
+                            child: SizeTransition(
+                              sizeFactor: animation,
+                              child: _buildCartItem(index, product),
+                            ),
+                          ),
                           duration: const Duration(milliseconds: 200),
                         );
+                        setState(() {});
                       }),
                     ],
                   ),

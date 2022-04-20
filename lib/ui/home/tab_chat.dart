@@ -14,10 +14,17 @@ class _ChatTabState extends State<ChatTab> {
   Widget build(BuildContext context) {
     return Center(
       child: ElevatedButton(
+        style: ButtonStyle(
+          shape: MaterialStateProperty.all(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+          ),
+        ),
         onPressed: () {
           Navigator.of(context).push(createRoute(const LoginPage()));
         },
-        child: const Text('Please login to enjoy!'),
+        child: const Text('Login and enjoy now!'),
       ),
     );
   }

@@ -79,7 +79,7 @@ class _ScanQRPageState extends State<ScanQRPage> {
             height: 64,
             child: Material(
               shape: const CircleBorder(),
-              color: Color(0x4DFFFFFF),
+              color: const Color(0x4DFFFFFF),
               child: InkWell(
                 customBorder: const CircleBorder(),
                 child: const Icon(
@@ -101,7 +101,7 @@ class _ScanQRPageState extends State<ScanQRPage> {
             height: 64,
             child: Material(
               shape: const CircleBorder(),
-              color: Color(0x4DFFFFFF),
+              color: const Color(0x4DFFFFFF),
               child: InkWell(
                 customBorder: const CircleBorder(),
                 child: const Icon(
@@ -126,7 +126,6 @@ class _ScanQRPageState extends State<ScanQRPage> {
           final key = e.Key.fromUtf8(App.ask);
           final iv = e.IV.fromLength(16);
           final encrypter = e.Encrypter(e.AES(key));
-          // final encrypted = encrypter.encrypt(input, iv: iv);
           final productId = encrypter.decrypt(e.Encrypted.fromBase64(input), iv: iv);
           showToast('Data found:\n$productId');
           return;
