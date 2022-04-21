@@ -12,4 +12,12 @@ class AppPreferences {
   static setAccessToken(String token) => _setString('pref_token', token);
 
   static getAccessToken() => _getString('pref_token');
+
+  static setUsername(String token) => _setString('pref_username', token);
+
+  static getUsername() => _getString('pref_username');
+
+  static setPassword(String token) => _setString('pref_password', token);
+
+  static getPassword() => _getString('pref_password');
 }

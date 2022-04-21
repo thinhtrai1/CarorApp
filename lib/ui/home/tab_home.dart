@@ -289,7 +289,7 @@ class _FeatureItem1 extends StatelessWidget {
           style: const TextStyle(
             color: Colors.black,
             fontSize: 16,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
@@ -385,7 +385,7 @@ class _FeatureList2State extends State<_FeatureList2> {
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                             shadows: <Shadow>[
                               Shadow(
                                 offset: Offset(2, 2),
@@ -593,7 +593,7 @@ class _TrendingItem extends StatelessWidget {
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 16,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(

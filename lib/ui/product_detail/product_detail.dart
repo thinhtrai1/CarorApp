@@ -55,6 +55,12 @@ class _ProductDetailState extends State<ProductDetailPage> {
         children: [
           Hero(
             tag: widget._heroTag,
+            flightShuttleBuilder: (a, animation, b, fromHeroContext, toHeroContext) {
+              return ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: toHeroContext.widget,
+              );
+            },
             child: Image.network(
               DataService.getFullUrl(product.image),
               fit: BoxFit.cover,
@@ -474,7 +480,7 @@ class _AvatarAnimateImageState extends State<_AvatarAnimateImage> with SingleTic
   @override
   void initState() {
     _animationController = AnimationController(duration: const Duration(milliseconds: 500), vsync: this);
-    _avatarAnimation = Tween<double>(begin: 0, end: 1).animate(_animationController)..addListener(() => setState(() {}));
+    _avatarAnimation = Tween<double>(begin: 0, end: 1).animate(_animationController);
     _animationController.forward();
     widget._scrollController.addListener(() => setState(() {}));
     super.initState();
@@ -493,19 +499,27 @@ class _AvatarAnimateImageState extends State<_AvatarAnimateImage> with SingleTic
   Widget build(BuildContext context) {
     final offset = widget._scrollController.offset * 1.2;
     final left = min(_width - _radius * 1.5 - 16, offset * _ratio);
-    var fraction = left / (_width - _radius * 1.5 - 16);
-    final scale = offset == 0 ? _avatarAnimation.value : 1 - fraction / 2;
-    fraction = fraction * (1 - (1 - fraction) / 1.5);
+    final leftPer = left / (_width - _radius * 1.5 - 16);
+    final scale = 1 - leftPer / 2;
+    final fraction = leftPer * (1 - (1 - leftPer) / 1.5);
     return Positioned(
       left: 16 + left * fraction,
       top: max(widget._statusHeight - _radius / 2, widget._headerHeight - 16 - _radius - offset),
-      child: Transform.scale(
-        scale: scale,
-        child: CircleAvatar(
-          radius: _radius,
-          backgroundImage: NetworkImage(DataService.getFullUrl(widget._thumbnail)),
-        ),
-      ),
+      child: offset == 0
+          ? ScaleTransition(
+              scale: _avatarAnimation,
+              child: CircleAvatar(
+                radius: _radius,
+                backgroundImage: NetworkImage(DataService.getFullUrl(widget._thumbnail)),
+              ),
+            )
+          : Transform.scale(
+              scale: scale,
+              child: CircleAvatar(
+                radius: _radius,
+                backgroundImage: NetworkImage(DataService.getFullUrl(widget._thumbnail)),
+              ),
+            ),
     );
   }
 }

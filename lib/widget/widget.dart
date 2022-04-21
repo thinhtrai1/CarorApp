@@ -157,3 +157,39 @@ class CommonTitleText extends Text {
           ),
         );
 }
+
+class LoginTextFieldBackground extends Container {
+  LoginTextFieldBackground({
+    Key? key,
+    String? label,
+    TextInputAction? textInputAction = TextInputAction.next,
+    TextCapitalization textCapitalization = TextCapitalization.none,
+    TextEditingController? controller,
+    TextFormField? child,
+  }) : super(
+    key: key,
+    padding: const EdgeInsets.only(left: 16),
+    decoration: const BoxDecoration(
+      borderRadius: BorderRadius.all(Radius.circular(16)),
+      color: Colors.white,
+      boxShadow: [
+        BoxShadow(
+          color: colorShadow,
+          offset: Offset(0, 0),
+          blurRadius: 2,
+        ),
+      ],
+    ),
+    child: child ??
+        TextFormField(
+          controller: controller,
+          textInputAction: textInputAction,
+          textCapitalization: textCapitalization,
+          decoration: InputDecoration(
+            border: InputBorder.none,
+            labelText: label,
+          ),
+          style: const TextStyle(fontFamily: "Montserrat"),
+        ),
+  );
+}

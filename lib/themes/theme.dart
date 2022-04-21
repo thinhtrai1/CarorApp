@@ -1,6 +1,6 @@
+import 'package:caror/widget/progress_bar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 
@@ -51,29 +51,32 @@ void showLoading(BuildContext context, {String? message}) {
     barrierDismissible: false,
     barrierColor: Colors.black26,
     builder: (BuildContext context) {
-      return Center(
-        child: Container(
-          height: 48,
-          padding: const EdgeInsets.only(left: 12, right: 24),
-          decoration: const BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(24)),
-            color: Colors.white,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SpinKitFadingCircle(color: Colors.black, size: 32, duration: Duration(milliseconds: 500)),
-              const SizedBox(width: 8),
-              Text(
-                message ?? 'Loading...',
-                style: const TextStyle(
-                  fontFamily: "Montserrat",
-                  fontSize: 14,
-                  color: Colors.black,
-                  decoration: TextDecoration.none,
+      return WillPopScope(
+        onWillPop: () async => false,
+        child: Center(
+          child: Container(
+            height: 48,
+            padding: const EdgeInsets.only(left: 12, right: 24),
+            decoration: const BoxDecoration(
+              borderRadius: BorderRadius.all(Radius.circular(24)),
+              color: Colors.white,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CustomProgressBar(color: Colors.black, size: 32, duration: Duration(milliseconds: 500)),
+                const SizedBox(width: 8),
+                Text(
+                  message ?? 'Loading...',
+                  style: const TextStyle(
+                    fontFamily: "Montserrat",
+                    fontSize: 14,
+                    color: Colors.black,
+                    decoration: TextDecoration.none,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       );

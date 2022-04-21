@@ -7,25 +7,19 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'home/home.dart';
 
 void main() async {
+  //TODO #HOWTO: Why don't have SystemNavigationBar in iOS?
   WidgetsFlutterBinding.ensureInitialized();
   await AppPreferences.init();
+  initializeDateFormatting();
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       systemNavigationBarColor: Colors.white,
       systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
-  initializeDateFormatting();
-  runApp(const MyApp());
-}
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  // This widget is the root of your application.
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
+  runApp(
+    MaterialApp(
       title: 'Caror',
       key: App.navigatorKey,
       theme: ThemeData(
@@ -35,6 +29,6 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: Colors.white,
       ),
       home: const HomePage(),
-    );
-  }
+    ),
+  );
 }

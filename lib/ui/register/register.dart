@@ -1,5 +1,4 @@
 import 'package:caror/themes/util.dart';
-import 'package:caror/ui/login/login.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/data_service.dart';
@@ -165,9 +164,11 @@ class _RegisterPagePageState extends State<RegisterPage> {
       Navigator.pop(context);
       if (user != null) {
         AppPreferences.setAccessToken(user.token);
+        AppPreferences.setUsername(username);
+        AppPreferences.setPassword(password);
         Navigator.pushAndRemoveUntil(
           context,
-          createRoute(const HomePage()),
+          createRoute(const HomePage(loginState: LoginState.loggedIn)),
           (route) => false,
         );
       }

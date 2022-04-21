@@ -1,3 +1,5 @@
+import 'package:caror/data/data_service.dart';
+import 'package:caror/data/shared_preferences.dart';
 import 'package:caror/ui/home/tab_cart.dart';
 import 'package:caror/ui/home/tab_chat.dart';
 import 'package:caror/ui/home/tab_universe.dart';
@@ -5,15 +7,43 @@ import 'package:caror/ui/home/tab_home.dart';
 import 'package:caror/ui/home/tab_setting.dart';
 import 'package:flutter/material.dart';
 
+enum LoginState { noLogin, loggingIn, loggedIn }
+
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({Key? key, this.loginState = LoginState.noLogin}) : super(key: key);
+
+  final LoginState loginState;
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<HomePage> createState() => HomePageState();
 }
 
-class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
+class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
   late final _tabController = TabController(length: 5, vsync: this);
+  late LoginState loginState;
+
+  @override
+  void initState() {
+    loginState = widget.loginState;
+    if (widget.loginState != LoginState.loggedIn) {
+      final username = AppPreferences.getUsername();
+      final password = AppPreferences.getPassword();
+      if (username != null && password != null) {
+        loginState = LoginState.loggingIn;
+        DataService.login(username, password).then((user) {
+          if (user != null) {
+            AppPreferences.setAccessToken(user.token);
+            AppPreferences.setUsername(username);
+            AppPreferences.setPassword(password);
+            loginState = LoginState.loggedIn;
+          } else {
+            loginState = LoginState.noLogin;
+          }
+        });
+      }
+    }
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -65,11 +95,13 @@ class _BottomBarState extends State<_BottomBar> with SingleTickerProviderStateMi
   void initState() {
     super.initState();
     _animationController = AnimationController(duration: const Duration(milliseconds: 200), vsync: this);
-    _rotateAnimation = Tween<double>(begin: 0, end: 0.1).animate(_animationController)..addListener(() => setState(() {}));
+    _rotateAnimation = Tween<double>(begin: 0, end: 0.1).animate(_animationController);
   }
 
   _rotateIcon() {
-    _animationController.forward().then((value) => _animationController.reverse());
+    setState(() {
+      _animationController.forward().then((value) => _animationController.reverse());
+    });
   }
 
   @override

@@ -1,7 +1,9 @@
 import 'dart:convert';
 
+import 'package:caror/data/data_service.dart';
 import 'package:caror/themes/number.dart';
 import 'package:caror/themes/theme.dart';
+import 'package:caror/ui/product_detail/product_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:encrypt/encrypt.dart' as e;
@@ -127,13 +129,24 @@ class _ScanQRPageState extends State<ScanQRPage> {
           final iv = e.IV.fromLength(16);
           final encrypter = e.Encrypter(e.AES(key));
           final productId = encrypter.decrypt(e.Encrypted.fromBase64(input), iv: iv);
-          showToast('Data found:\n$productId');
+          _getProducts(productId);
           return;
         }
       } on FormatException catch (_) {}
     }
     showToast('Data error!');
     Navigator.pop(context);
+  }
+
+  _getProducts(String id) {
+    showLoading(context, message: 'Loading data...');
+    DataService.getProductDetail(id).then((response) {
+      Navigator.pop(context);
+      if (response?.data != null) {
+        Navigator.pop(context);
+        Navigator.of(context).push(createRoute(ProductDetailPage(response!.data!, Object)));
+      }
+    });
   }
 }
 
@@ -154,7 +167,7 @@ class _ScanQRPaintState extends State<_ScanQrPaint> with SingleTickerProviderSta
   void initState() {
     super.initState();
     _animationController = AnimationController(duration: const Duration(milliseconds: 500), vsync: this);
-    _cornerWidthAnimation = Tween<double>(begin: widget.screenWidth / 3, end: 40).animate(_animationController)..addListener(() => setState(() {}));
+    _cornerWidthAnimation = Tween<double>(begin: widget.screenWidth / 3, end: 40).animate(_animationController);
     _animationController.forward();
   }
 
@@ -167,15 +180,16 @@ class _ScanQRPaintState extends State<_ScanQrPaint> with SingleTickerProviderSta
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      painter: _ShapePainter(_cornerWidthAnimation.value),
+      willChange: true,
+      painter: _ShapePainter(_cornerWidthAnimation),
     );
   }
 }
 
 class _ShapePainter extends CustomPainter {
-  _ShapePainter(this.cornerWidth) : super();
+  _ShapePainter(this.listenable) : super(repaint: listenable);
 
-  final double cornerWidth;
+  final Animation listenable;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -187,6 +201,7 @@ class _ShapePainter extends CustomPainter {
     final rectWidth = size.width / 2;
     final left = (size.width - rectWidth) / 2;
     final top = (size.height - rectWidth) / 2;
+    final cornerWidth = listenable.value;
     final path = Path()
       ..moveTo(left + cornerWidth, top)
       ..lineTo(left + radius, top)
@@ -209,6 +224,6 @@ class _ShapePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_ShapePainter oldDelegate) {
-    return oldDelegate.cornerWidth != cornerWidth;
+    return oldDelegate.listenable.value != listenable.value;
   }
 }
