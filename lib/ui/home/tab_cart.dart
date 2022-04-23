@@ -86,7 +86,7 @@ class _CartTabState extends State<CartTab> {
         SliverToBoxAdapter(
           child: Container(
             margin: const EdgeInsets.only(top: 24),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 80),
             decoration: const BoxDecoration(
               borderRadius: BorderRadius.all(Radius.circular(16)),
               color: Colors.white,
@@ -293,7 +293,7 @@ class _CartTabState extends State<CartTab> {
                           ],
                         ),
                       ),
-                      CommonIcon(Icons.delete_rounded, padding: 8, onPressed: () {
+                      buildMaterialIcon(Icons.delete_rounded, padding: 8, onPressed: () {
                         _products.removeAt(index);
                         _listKey.currentState!.removeItem(
                           index,
@@ -323,7 +323,7 @@ class _CartTabState extends State<CartTab> {
                         ),
                       ),
                       const Spacer(),
-                      CommonIcon(Icons.remove_circle_outline_rounded, padding: 8, onPressed: () {
+                      buildMaterialIcon(Icons.remove_circle_outline_rounded, padding: 8, onPressed: () {
                         if (product.qty > 0) setState(() => product.qty -= 1);
                       }),
                       Text(
@@ -334,7 +334,7 @@ class _CartTabState extends State<CartTab> {
                           fontSize: 18,
                         ),
                       ),
-                      CommonIcon(
+                      buildMaterialIcon(
                         Icons.add_circle_outline_rounded,
                         padding: 8,
                         onPressed: () => setState(() => product.qty += 1),

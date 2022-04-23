@@ -91,6 +91,7 @@ class _ProductDetailState extends State<ProductDetailPage> {
             ),
           ),
           SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
             controller: _scrollController,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -250,11 +251,11 @@ class _ProductDetailState extends State<ProductDetailPage> {
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          CommonIcon(Icons.favorite_border_rounded, onPressed: () {}),
-                          CommonIcon(Icons.share_rounded, onPressed: () {}),
-                          CommonIcon(Icons.chat_rounded, onPressed: () {}),
+                          const SelectionPopupIcon(Icons.favorite_border_rounded, padding: 16),
+                          buildMaterialIcon(Icons.share_rounded, padding: 16, onPressed: () {}),
+                          buildMaterialIcon(Icons.chat_rounded, padding: 16, onPressed: () {}),
                           const Spacer(),
-                          CommonIcon(
+                          buildMaterialIcon(
                             Icons.remove_circle_outline_rounded,
                             padding: 16,
                             onPressed: () {
@@ -269,7 +270,7 @@ class _ProductDetailState extends State<ProductDetailPage> {
                               fontSize: 18,
                             ),
                           ),
-                          CommonIcon(
+                          buildMaterialIcon(
                             Icons.add_circle_outline_rounded,
                             padding: 16,
                             onPressed: () => setState(() => product.qty += 1),
@@ -308,7 +309,7 @@ class _ProductDetailState extends State<ProductDetailPage> {
                               fontSize: 16,
                             ),
                           ),
-                          CommonIcon(Icons.arrow_forward_rounded, padding: 16, onPressed: () {}),
+                          buildMaterialIcon(Icons.arrow_forward_rounded, padding: 16, onPressed: () {}),
                         ],
                       ),
                       _buildSuggestListView(product),
@@ -322,7 +323,7 @@ class _ProductDetailState extends State<ProductDetailPage> {
                               fontSize: 16,
                             ),
                           ),
-                          CommonIcon(Icons.arrow_forward_rounded, padding: 16, onPressed: () {}),
+                          buildMaterialIcon(Icons.arrow_forward_rounded, padding: 16, onPressed: () {}),
                         ],
                       ),
                       _buildSuggestListView(product),
@@ -339,9 +340,9 @@ class _ProductDetailState extends State<ProductDetailPage> {
             _scrollController,
           ),
           Positioned(
-            left: 0,
+            left: 8,
             top: _statusBarHeight,
-            child: CommonIcon(
+            child: buildMaterialIcon(
               Icons.arrow_back_rounded,
               padding: 13,
               color: Colors.white,
@@ -493,13 +494,13 @@ class _AvatarAnimateImageState extends State<_AvatarAnimateImage> with SingleTic
   }
 
   late final double _width = Number.getScreenWidth(context);
-  late final double _ratio = (_width - _radius * 1.5 - 16) / (widget._headerHeight - 16 - _radius - widget._statusHeight + _radius / 2);
+  late final double _ratio = (_width - _radius * 1.5 - 16 - 8) / (widget._headerHeight - 16 - _radius - widget._statusHeight + _radius / 2);
 
   @override
   Widget build(BuildContext context) {
-    final offset = widget._scrollController.offset * 1.2;
-    final left = min(_width - _radius * 1.5 - 16, offset * _ratio);
-    final leftPer = left / (_width - _radius * 1.5 - 16);
+    final offset = max(0.0, widget._scrollController.offset * 1.2);
+    final left = min(_width - _radius * 1.5 - 16 - 8, offset * _ratio);
+    final leftPer = left / (_width - _radius * 1.5 - 16 - 8);
     final scale = 1 - leftPer / 2;
     final fraction = leftPer * (1 - (1 - leftPer) / 1.5);
     return Positioned(
@@ -520,6 +521,90 @@ class _AvatarAnimateImageState extends State<_AvatarAnimateImage> with SingleTic
                 backgroundImage: NetworkImage(DataService.getFullUrl(widget._thumbnail)),
               ),
             ),
+    );
+  }
+}
+
+class SelectionPopupIcon extends StatefulWidget {
+  const SelectionPopupIcon(this.icon, {Key? key, this.padding = 20}) : super(key: key);
+
+  final IconData icon;
+  final double padding;
+
+  @override
+  State<SelectionPopupIcon> createState() => _SelectionPopupIconState();
+}
+
+class _SelectionPopupIconState extends State<SelectionPopupIcon> with SingleTickerProviderStateMixin {
+  final selection = ['❤', '😍', '😆', '😂', '😢', '☹'];
+  late final _controller = AnimationController(duration: const Duration(milliseconds: 1000), vsync: this);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return buildMaterialIcon(widget.icon, padding: widget.padding, onPressed: () {
+      showDialog(
+        context: context,
+        barrierColor: Colors.transparent,
+        builder: (c) {
+          final box = context.findRenderObject() as RenderBox;
+          final position = box.localToGlobal(Offset.zero);
+          final width = 32.0 * selection.length;
+          return Stack(
+            children: [
+              Positioned(
+                left: max(4, position.dx - width / 3),
+                width: width,
+                height: 72,
+                top: position.dy - 64,
+                child: ListView(
+                  children: List.generate(
+                    selection.length,
+                    (index) {
+                      return SizedBox(
+                        width: 32,
+                        child: Stack(
+                          children: [
+                            PositionedTransition(
+                              rect: _createTween(index),
+                              child: GestureDetector(
+                                onTap: () => Navigator.pop(context),
+                                child: Text(
+                                  selection[index],
+                                  style: const TextStyle(fontSize: 24),
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                  scrollDirection: Axis.horizontal,
+                ),
+              ),
+            ],
+          );
+        },
+      );
+      _controller.forward(from: 0);
+    });
+  }
+
+  Animation<RelativeRect> _createTween(int index) {
+    return RelativeRectTween(
+      begin: RelativeRect.fromSize(const Rect.fromLTWH(0, 40, 0, 0), const Size(32, 72)),
+      end: RelativeRect.fromSize(const Rect.fromLTWH(0, 8, 32, 32), const Size(32, 72)),
+    ).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Interval(index * 0.07, 1, curve: Curves.elasticOut),
+      ),
     );
   }
 }

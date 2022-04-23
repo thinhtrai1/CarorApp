@@ -53,7 +53,7 @@ class DataService {
         'password': password,
       },
     );
-    return _getResponse(response, (json) => LoginResponse.fromJson(json).data);
+    return _getResponse(response, LoginResponse.fromJson)?.data;
   }
 
   static Future<User?> register(String username, String password, String email, String firstname, String lastname) async {
@@ -68,7 +68,7 @@ class DataService {
         'lastname': lastname,
       },
     );
-    return _getResponse(response, (json) => LoginResponse.fromJson(json).data);
+    return _getResponse(response, LoginResponse.fromJson)?.data;
   }
 
   static Future<ProductListResponse?> getProducts(int page) async {
@@ -76,7 +76,7 @@ class DataService {
       _getApiUrl('product/$page'),
       headers: _getHeader(),
     );
-    return _getResponse(response, (json) => ProductListResponse.fromJson(json));
+    return _getResponse(response, ProductListResponse.fromJson);
   }
 
   static Future<ProductResponse?> getProductDetail(String id) async {
@@ -84,14 +84,14 @@ class DataService {
       _getApiUrl('product?id=$id'),
       headers: _getHeader(),
     );
-    return _getResponse(response, (json) => ProductResponse.fromJson(json));
+    return _getResponse(response, ProductResponse.fromJson);
   }
 
   static Future<PeopleListResponse?> getPeoples() async {
     final response = await http.get(
-      _getApiUrl('users'),
+      _getApiUrl('peoples'),
       headers: _getHeader(),
     );
-    return _getResponse(response, (json) => PeopleListResponse.fromJson(json));
+    return _getResponse(response, PeopleListResponse.fromJson);
   }
 }

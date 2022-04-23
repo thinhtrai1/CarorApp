@@ -38,27 +38,27 @@ class CommonWidget {
   }
 }
 
-class CommonIcon extends Material {
-  CommonIcon(
-    IconData icon, {
-    Key? key,
-    double padding = 20,
-    Color color = Colors.black,
-    Color backgroundColor = Colors.transparent,
-    GestureTapCallback? onPressed,
-  }) : super(
-          key: key,
-          color: backgroundColor,
-          shape: const CircleBorder(),
-          child: InkWell(
-            customBorder: const CircleBorder(),
-            onTap: onPressed,
-            child: Padding(
-              padding: EdgeInsets.all(padding),
-              child: Icon(icon, color: color),
-            ),
-          ),
-        );
+Widget buildMaterialIcon(
+  IconData icon, {
+  Key? key,
+  double padding = 20,
+  Color color = Colors.black,
+  Color backgroundColor = Colors.transparent,
+  GestureTapCallback? onPressed,
+}) {
+  return Material(
+    key: key,
+    color: backgroundColor,
+    shape: const CircleBorder(),
+    child: InkWell(
+      customBorder: const CircleBorder(),
+      onTap: onPressed,
+      child: Padding(
+        padding: EdgeInsets.all(padding),
+        child: Icon(icon, color: color),
+      ),
+    ),
+  );
 }
 
 class CommonSliverRefreshControl extends CupertinoSliverRefreshControl {
@@ -167,29 +167,29 @@ class LoginTextFieldBackground extends Container {
     TextEditingController? controller,
     TextFormField? child,
   }) : super(
-    key: key,
-    padding: const EdgeInsets.only(left: 16),
-    decoration: const BoxDecoration(
-      borderRadius: BorderRadius.all(Radius.circular(16)),
-      color: Colors.white,
-      boxShadow: [
-        BoxShadow(
-          color: colorShadow,
-          offset: Offset(0, 0),
-          blurRadius: 2,
-        ),
-      ],
-    ),
-    child: child ??
-        TextFormField(
-          controller: controller,
-          textInputAction: textInputAction,
-          textCapitalization: textCapitalization,
-          decoration: InputDecoration(
-            border: InputBorder.none,
-            labelText: label,
+          key: key,
+          padding: const EdgeInsets.only(left: 16),
+          decoration: const BoxDecoration(
+            borderRadius: BorderRadius.all(Radius.circular(16)),
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: colorShadow,
+                offset: Offset(0, 0),
+                blurRadius: 2,
+              ),
+            ],
           ),
-          style: const TextStyle(fontFamily: "Montserrat"),
-        ),
-  );
+          child: child ??
+              TextFormField(
+                controller: controller,
+                textInputAction: textInputAction,
+                textCapitalization: textCapitalization,
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  labelText: label,
+                ),
+                style: const TextStyle(fontFamily: "Montserrat"),
+              ),
+        );
 }

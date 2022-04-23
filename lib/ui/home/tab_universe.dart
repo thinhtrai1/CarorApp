@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:caror/ui/product_detail/product_detail.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/data_service.dart';
@@ -32,16 +33,18 @@ class _UniverseTabState extends State<UniverseTab> with SingleTickerProviderStat
       child: CustomScrollView(
         physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         slivers: [
-          //TODO #HOWTO: Add Widget above CommonSliverRefreshControl
-          if (!_isInitial)
-            CommonSliverRefreshControl(_refreshIconController, onRefresh: () async {
-              _getProducts(true);
-            }),
+          SliverPadding(
+            padding: EdgeInsets.only(top: _statusBarHeight, bottom: 8),
+            sliver: _isInitial
+                ? null
+                : CommonSliverRefreshControl(_refreshIconController, onRefresh: () async {
+                    _getProducts(true);
+                  }),
+          ),
           SliverToBoxAdapter(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: _statusBarHeight + 16),
                 Row(
                   children: const [
                     SizedBox(width: 16),
@@ -80,7 +83,7 @@ class _UniverseTabState extends State<UniverseTab> with SingleTickerProviderStat
           ),
           _buildPostsListView(),
           const SliverToBoxAdapter(
-            child: SizedBox(height: 16),
+            child: SizedBox(height: 80),
           ),
         ],
       ),
@@ -406,8 +409,7 @@ class _UniverseTabState extends State<UniverseTab> with SingleTickerProviderStat
           const SizedBox(height: 16),
           Row(
             children: [
-              const Icon(Icons.thumb_up_alt_rounded),
-              const SizedBox(width: 8),
+              const SelectionPopupIcon(Icons.thumb_up_alt_rounded, padding: 8),
               Text(
                 random.nextInt(10000).toString(),
                 style: const TextStyle(

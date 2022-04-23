@@ -89,7 +89,7 @@ class _ChatTabState extends State<ChatTab> {
                       style: const TextStyle(fontFamily: "Montserrat"),
                     ),
                   ),
-                  CommonIcon(Icons.search_rounded, padding: 16, onPressed: () {}),
+                  buildMaterialIcon(Icons.search_rounded, padding: 16, onPressed: () {}),
                 ],
               ),
             ),
@@ -162,7 +162,7 @@ class _ChatTabState extends State<ChatTab> {
                     ],
                   ),
             _buildVerticalListView(),
-            const SizedBox(height: 16),
+            const SizedBox(height: 80),
           ],
         ),
       ),
@@ -174,6 +174,7 @@ class _ChatTabState extends State<ChatTab> {
   bool _isShimmerIndex() => _peoples == null;
 
   Widget _buildHorizontalListView(bool activeIcon) {
+    final peoples = _peoples?.toList()?..shuffle();
     return SizedBox(
       height: 64,
       child: ListView.separated(
@@ -187,7 +188,7 @@ class _ChatTabState extends State<ChatTab> {
                 child: CircleAvatar(
                   radius: 32,
                   backgroundColor: colorShimmer,
-                  backgroundImage: _isShimmerIndex() ? null : NetworkImage(_peoples![index].avatar),
+                  backgroundImage: _isShimmerIndex() ? null : NetworkImage(DataService.getFullUrl(peoples![index].avatar)),
                 ),
               ),
               if (!_isShimmerIndex() && activeIcon)
@@ -264,7 +265,7 @@ class _ChatTabState extends State<ChatTab> {
                     CircleAvatar(
                       radius: 32,
                       backgroundColor: colorShimmer,
-                      backgroundImage: NetworkImage(_peoples![index].avatar),
+                      backgroundImage: NetworkImage(DataService.getFullUrl(_peoples![index].avatar)),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -282,7 +283,7 @@ class _ChatTabState extends State<ChatTab> {
                             height: 2,
                           ),
                           Text(
-                            people.email,
+                            people.username,
                             style: const TextStyle(
                               fontSize: 14,
                             ),

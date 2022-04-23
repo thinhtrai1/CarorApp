@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/widgets.dart';
 
 class Shimmer extends StatefulWidget {
   static const shimmerGradient = LinearGradient(

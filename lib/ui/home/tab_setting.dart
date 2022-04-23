@@ -1,3 +1,4 @@
+import 'package:caror/ui/web_view/webview.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -5,6 +6,7 @@ import '../../themes/theme.dart';
 import '../../widget/widget.dart';
 import '../login/login.dart';
 import '../scan_qr/scan_qr.dart';
+import 'home.dart';
 
 class SettingTab extends StatefulWidget {
   const SettingTab({Key? key}) : super(key: key);
@@ -15,9 +17,11 @@ class SettingTab extends StatefulWidget {
 
 class _SettingTabState extends State<SettingTab> {
   var _isNotification = true;
+  HomePageState? homeState;
 
   @override
   void initState() {
+    homeState = context.findAncestorStateOfType<HomePageState>();
     super.initState();
   }
 
@@ -39,24 +43,43 @@ class _SettingTabState extends State<SettingTab> {
               Navigator.of(context).push(createRoute(const ScanQRPage()));
             }),
             _buildItemSetting(
-                'notification',
-                Transform.scale(
-                  scale: 0.7,
-                  child: CupertinoSwitch(
-                    value: _isNotification,
-                    onChanged: (value) {
-                      setState(() {
-                        _isNotification = value;
-                      });
-                    },
-                  ),
+              'notification',
+              Transform.scale(
+                scale: 0.7,
+                child: CupertinoSwitch(
+                  value: _isNotification,
+                  onChanged: (value) {
+                    setState(() {
+                      _isNotification = value;
+                    });
+                  },
                 ),
-                () => setState(() {
-                      _isNotification = !_isNotification;
-                    })),
-            _buildItemSetting('sound', const Icon(Icons.arrow_right_rounded), () {}),
+              ),
+              () => setState(() {
+                _isNotification = !_isNotification;
+              }),
+            ),
+            _buildItemSetting(
+              'sound',
+              Transform.scale(
+                scale: 0.7,
+                child: CupertinoSwitch(
+                  value: homeState?.isSound == true,
+                  onChanged: (value) {
+                    setState(() {
+                      homeState?.checkSound(value: value);
+                    });
+                  },
+                ),
+              ),
+              () => setState(() {
+                homeState?.checkSound();
+              }),
+            ),
             _buildItemSetting('language', const Icon(Icons.arrow_right_rounded), () {}),
-            _buildItemSetting('information', const Icon(Icons.arrow_right_rounded), () {}),
+            _buildItemSetting('information', const Icon(Icons.arrow_right_rounded), () {
+              Navigator.of(context).push(createRoute(const WebViewPage()));
+            }),
             const SizedBox(height: 64),
             Container(
               decoration: const BoxDecoration(
@@ -79,7 +102,7 @@ class _SettingTabState extends State<SettingTab> {
                 ),
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 80),
           ],
         ),
       ),

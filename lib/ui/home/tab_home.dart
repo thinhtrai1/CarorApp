@@ -20,7 +20,7 @@ class HomeTab extends StatefulWidget {
   State<HomeTab> createState() => _HomeTabState();
 }
 
-class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
+class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin, AutomaticKeepAliveClientMixin<HomeTab> {
   var _isInitial = true;
   var _currentPage = 0;
   var _isLoadMore = false;
@@ -29,6 +29,10 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
   late final _tabController = TabController(length: 5, vsync: this);
   late final _refreshIconController = AnimationController(duration: const Duration(milliseconds: 500), vsync: this)..repeat();
   List<Product>? _favourites;
+  late final _statusBarHeight = Number.getStatusBarHeight(context);
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -78,26 +82,32 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Column(
-        children: [
-          CustomTabBar(
-            controller: _tabController,
+    super.build(context);
+    return Stack(
+      children: [
+        TabBarView(
+          controller: _tabController,
+          children: [
+            _buildContentView(_ListViewFeature(_products, _isShimmerIndex, onPressed: _onItemPressed), _scrollController, sliverChild2: _buildListViewFeature3()),
+            _buildContentView(_buildListViewTrending(), _scrollController),
+            _buildContentView(_ListViewFavourites(onPressed: _onItemPressed, favourites: _favourites), null),
+            _buildContentView(_buildListViewNew(), _scrollController),
+            _buildContentView(_buildListViewRecent(), _scrollController),
+          ],
+        ),
+        Column(
+            children: [
+              Container(
+                padding: EdgeInsets.only(top: _statusBarHeight + 2),
+                color: Colors.white.withOpacity(0.9),
+                child: CustomTabBar(
+                  controller: _tabController,
+                ),
+              ),
+              const Divider(thickness: 1, height: 1, color: Color(0xFFCCCCCC)),
+            ],
           ),
-          Flexible(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildContentView(_ListViewFeature(_products, _isShimmerIndex, onPressed: _onItemPressed), _scrollController, sliverChild2: _buildListViewFeature3()),
-                _buildContentView(_buildListViewTrending(), _scrollController),
-                _buildContentView(_ListViewFavourites(onPressed: _onItemPressed, favourites: _favourites), null),
-                _buildContentView(_buildListViewNew(), _scrollController),
-                _buildContentView(_buildListViewRecent(), _scrollController),
-              ],
-            ),
-          ),
-        ],
-      ),
+      ],
     );
   }
 
@@ -108,14 +118,16 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin {
         controller: controller,
         physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         slivers: [
-          if (!_isInitial) CommonSliverRefreshControl(_refreshIconController, onRefresh: () async => _getProducts(true)),
+          if (!_isInitial)
+            SliverPadding(
+              padding: EdgeInsets.only(top: _statusBarHeight + 51),
+              sliver: CommonSliverRefreshControl(_refreshIconController, onRefresh: () async {
+                _getProducts(true);
+              }),
+            ),
           sliverChild,
           if (sliverChild2 != null) sliverChild2,
-          const SliverToBoxAdapter(
-            child: SizedBox(
-              height: 16,
-            ),
-          ),
+          const SliverPadding(padding: EdgeInsets.only(bottom: 80)),
         ],
       ),
     );
@@ -496,7 +508,7 @@ class _ListViewFavouritesState extends State<_ListViewFavourites> {
           Positioned(
             bottom: 0,
             right: 16,
-            child: CommonIcon(Icons.delete_rounded, padding: 12, onPressed: () {
+            child: buildMaterialIcon(Icons.delete_rounded, padding: 12, onPressed: () {
               expandedPosition = -1;
               widget.favourites!.removeAt(index);
               listKey.currentState!.removeItem(
@@ -512,7 +524,7 @@ class _ListViewFavouritesState extends State<_ListViewFavourites> {
             child: AnimatedRotation(
               turns: expandedPosition == index ? 0.5 : 0,
               duration: const Duration(milliseconds: 300),
-              child: CommonIcon(Icons.expand_more_rounded, padding: 12, onPressed: () {
+              child: buildMaterialIcon(Icons.expand_more_rounded, padding: 12, onPressed: () {
                 setState(() {
                   expandedPosition = expandedPosition == index ? -1 : index;
                 });
@@ -901,9 +913,10 @@ class _CustomTabBarState extends State<CustomTabBar> {
   Widget build(BuildContext context) {
     return TabBar(
       controller: widget.controller,
+      physics: const BouncingScrollPhysics(),
       isScrollable: true,
       indicatorColor: Colors.transparent,
-      padding: const EdgeInsets.only(left: 12, right: 12, top: 8),
+      padding: const EdgeInsets.only(left: 12, right: 12),
       labelPadding: const EdgeInsets.symmetric(horizontal: 4),
       tabs: _getTabs(),
     );

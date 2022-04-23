@@ -4,6 +4,7 @@ import 'package:caror/data/data_service.dart';
 import 'package:caror/themes/number.dart';
 import 'package:caror/themes/theme.dart';
 import 'package:caror/ui/product_detail/product_detail.dart';
+import 'package:caror/widget/widget.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:encrypt/encrypt.dart' as e;
@@ -57,7 +58,7 @@ class _ScanQRPageState extends State<ScanQRPage> {
             right: 0,
             child: Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
                 decoration: const BoxDecoration(
                   borderRadius: BorderRadius.all(Radius.circular(24)),
                   color: Color(0x4DFFFFFF),
@@ -68,7 +69,7 @@ class _ScanQRPageState extends State<ScanQRPage> {
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
-                    fontSize: 20,
+                    fontSize: 16,
                   ),
                 ),
               ),
@@ -79,21 +80,15 @@ class _ScanQRPageState extends State<ScanQRPage> {
             left: screenWidth / 4 - 6,
             width: 64,
             height: 64,
-            child: Material(
-              shape: const CircleBorder(),
-              color: const Color(0x4DFFFFFF),
-              child: InkWell(
-                customBorder: const CircleBorder(),
-                child: const Icon(
-                  Icons.flashlight_on_rounded,
-                  color: Colors.white,
-                ),
-                onTap: () {
-                  if (_cameraController.hasTorch) {
-                    _cameraController.toggleTorch();
-                  }
-                },
-              ),
+            child: buildMaterialIcon(
+              Icons.flashlight_on_rounded,
+              color: Colors.white,
+              backgroundColor: const Color(0x4DFFFFFF),
+              onPressed: () {
+                if (_cameraController.hasTorch) {
+                  _cameraController.toggleTorch();
+                }
+              },
             ),
           ),
           Positioned(
@@ -101,17 +96,11 @@ class _ScanQRPageState extends State<ScanQRPage> {
             right: screenWidth / 4 - 6,
             width: 64,
             height: 64,
-            child: Material(
-              shape: const CircleBorder(),
-              color: const Color(0x4DFFFFFF),
-              child: InkWell(
-                customBorder: const CircleBorder(),
-                child: const Icon(
-                  Icons.photo_library_rounded,
-                  color: Colors.white,
-                ),
-                onTap: () {},
-              ),
+            child: buildMaterialIcon(
+              Icons.photo_library_rounded,
+              color: Colors.white,
+              backgroundColor: const Color(0x4DFFFFFF),
+              onPressed: () {},
             ),
           ),
         ],

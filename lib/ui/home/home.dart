@@ -1,3 +1,4 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:caror/data/data_service.dart';
 import 'package:caror/data/shared_preferences.dart';
 import 'package:caror/ui/home/tab_cart.dart';
@@ -21,6 +22,29 @@ class HomePage extends StatefulWidget {
 class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
   late final _tabController = TabController(length: 5, vsync: this);
   late LoginState loginState;
+  bool isSound = false;
+  AudioPlayer? _audioPlayer;
+
+  checkSound({bool? value}) async {
+    isSound = value ?? !isSound;
+    if (isSound) {
+      if (_audioPlayer == null) {
+        _audioPlayer = await AudioCache().loop('background_sound.mp3');
+      } else {
+        _audioPlayer!.resume();
+      }
+    } else {
+      _audioPlayer?.pause();
+    }
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer?.stop();
+    _audioPlayer?.dispose();
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -46,31 +70,29 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin 
   }
 
   @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: const [
-                HomeTab(),
-                UniverseTab(),
-                CartTab(),
-                ChatTab(),
-                SettingTab(),
-              ],
-            ),
+          TabBarView(
+            controller: _tabController,
+            physics: const BouncingScrollPhysics(),
+            children: const [
+              HomeTab(),
+              UniverseTab(),
+              CartTab(),
+              ChatTab(),
+              SettingTab(),
+            ],
           ),
-          CustomPaint(
-            painter: _BottomBarPaint(),
-            child: _BottomBar(_tabController),
+          Positioned(
+            child: CustomPaint(
+              painter: _BottomBarPaint(),
+              child: _BottomBar(_tabController),
+            ),
+            bottom: 0,
+            left: 0,
+            right: 0,
           ),
         ],
       ),
