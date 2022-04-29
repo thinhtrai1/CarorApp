@@ -8,6 +8,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   intl: ^0.17.0
   http: ^0.13.4
   shared_preferences: ^2.0.13
@@ -19,6 +21,7 @@ dependencies:
   qr_flutter: ^4.0.0
   webview_flutter: ^3.0.2
   audioplayers: ^0.20.1
+  animations: ^2.0.2
 
 dev_dependencies:
   flutter_test:
@@ -26,6 +29,7 @@ dev_dependencies:
   flutter_lints: ^1.0.0
 
 flutter:
+  generate: true
   uses-material-design: true
   fonts:
     - family: Montserrat
@@ -35,3 +39,5 @@ flutter:
           weight: 600
   assets:
     - assets/background_sound.mp3
+flutter_intl:
+  enabled: true

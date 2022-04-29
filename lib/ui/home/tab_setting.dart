@@ -1,3 +1,6 @@
+import 'package:caror/data/shared_preferences.dart';
+import 'package:caror/generated/l10n.dart';
+import 'package:caror/main.dart';
 import 'package:caror/ui/web_view/webview.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +19,8 @@ class SettingTab extends StatefulWidget {
 }
 
 class _SettingTabState extends State<SettingTab> {
-  var _isNotification = true;
+  bool _isNotification = true;
+  String _language = getLanguageName(AppPreferences.getLanguageCode());
   HomePageState? homeState;
 
   @override
@@ -33,20 +37,20 @@ class _SettingTabState extends State<SettingTab> {
         padding: const EdgeInsets.only(top: 32),
         child: Column(
           children: [
-            const CommonTitleText('Setting'),
+            CommonTitleText(S.of(context).settings),
             const SizedBox(height: 16),
-            _buildItemSetting('login', const Icon(Icons.arrow_right_rounded), () {
-              //TODO #HOWTO: Why don't have exit transition?
+            _SettingItem(S.current.login, const Icon(Icons.arrow_right_rounded), () {
               Navigator.of(context).push(createRoute(const LoginPage()));
             }),
-            _buildItemSetting('scan qr', const Icon(Icons.arrow_right_rounded), () {
+            _SettingItem(S.current.scan_qr, const Icon(Icons.arrow_right_rounded), () {
               Navigator.of(context).push(createRoute(const ScanQRPage()));
             }),
-            _buildItemSetting(
-              'notification',
+            _SettingItem(
+              S.current.notification,
               Transform.scale(
                 scale: 0.7,
                 child: CupertinoSwitch(
+                  activeColor: Colors.black,
                   value: _isNotification,
                   onChanged: (value) {
                     setState(() {
@@ -59,11 +63,12 @@ class _SettingTabState extends State<SettingTab> {
                 _isNotification = !_isNotification;
               }),
             ),
-            _buildItemSetting(
-              'sound',
+            _SettingItem(
+              S.current.sound,
               Transform.scale(
                 scale: 0.7,
                 child: CupertinoSwitch(
+                  activeColor: Colors.black,
                   value: homeState?.isSound == true,
                   onChanged: (value) {
                     setState(() {
@@ -76,8 +81,35 @@ class _SettingTabState extends State<SettingTab> {
                 homeState?.checkSound();
               }),
             ),
-            _buildItemSetting('language', const Icon(Icons.arrow_right_rounded), () {}),
-            _buildItemSetting('information', const Icon(Icons.arrow_right_rounded), () {
+            _SettingItem(
+              S.current.language,
+              DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  borderRadius: BorderRadius.circular(8),
+                  underline: const SizedBox(),
+                  alignment: Alignment.centerRight,
+                  value: _language,
+                  items: S.delegate.supportedLocales.map((e) {
+                    return DropdownMenuItem(
+                      value: getLanguageName(e.languageCode),
+                      child: Text(getLanguageName(e.languageCode), textAlign: TextAlign.end),
+                    );
+                  }).toList(),
+                  onChanged: (value) async {
+                    if (value != null) {
+                      final locale = S.delegate.supportedLocales.firstWhere((e) => value == getLanguageName(e.languageCode));
+                      AppPreferences.setLanguageCode(locale.languageCode);
+                      MyApp.setLocale(context, locale);
+                      // setState(() {
+                        _language = value;
+                      // });
+                    }
+                  },
+                ),
+              ),
+              () {},
+            ),
+            _SettingItem(S.current.information, const Icon(Icons.arrow_right_rounded), () {
               Navigator.of(context).push(createRoute(const WebViewPage()));
             }),
             const SizedBox(height: 64),
@@ -94,9 +126,9 @@ class _SettingTabState extends State<SettingTab> {
                 ],
               ),
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-              child: const Text(
-                'Logout',
-                style: TextStyle(
+              child: Text(
+                S.current.logout,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -108,8 +140,17 @@ class _SettingTabState extends State<SettingTab> {
       ),
     );
   }
+}
 
-  Widget _buildItemSetting(String title, Widget icon, Function() onPressed) {
+class _SettingItem extends StatelessWidget {
+  const _SettingItem(this.title, this.child, this.onPressed, {Key? key}) : super(key: key);
+
+  final String title;
+  final Widget child;
+  final Function() onPressed;
+
+  @override
+  Widget build(BuildContext context) {
     return InkWell(
       onTap: onPressed,
       child: Padding(
@@ -122,12 +163,12 @@ class _SettingTabState extends State<SettingTab> {
                   title.toUpperCase(),
                   style: const TextStyle(
                     fontSize: 14,
-                    color: colorDark,
+                    color: Colors.black,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 const Spacer(),
-                icon,
+                child,
                 const SizedBox(width: 8, height: 50),
               ],
             ),

@@ -1,3 +1,4 @@
+import 'package:caror/generated/l10n.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppPreferences {
@@ -20,4 +21,8 @@ class AppPreferences {
   static setPassword(String token) => _setString('pref_password', token);
 
   static getPassword() => _getString('pref_password');
+
+  static setLanguageCode(String code) => _setString('pref_language_code', code);
+
+  static getLanguageCode() => _getString('pref_language_code') ?? S.delegate.supportedLocales.first.languageCode;
 }
