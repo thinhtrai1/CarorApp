@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:caror/generated/l10n.dart';
+import 'package:caror/ui/image/image.dart';
 import 'package:caror/ui/product_detail/product_detail.dart';
 import 'package:flutter/material.dart';
 
@@ -24,7 +26,8 @@ class _UniverseTabState extends State<UniverseTab> with SingleTickerProviderStat
   late final _statusBarHeight = Number.getStatusBarHeight(context);
   final _products = List<Product>.empty(growable: true);
   final _shortController = ScrollController();
-  late final _refreshIconController = AnimationController(duration: const Duration(milliseconds: 500), vsync: this)..repeat();
+  late final _refreshIconController = AnimationController(duration: const Duration(milliseconds: 500), vsync: this)
+    ..repeat();
 
   @override
   Widget build(BuildContext context) {
@@ -34,48 +37,48 @@ class _UniverseTabState extends State<UniverseTab> with SingleTickerProviderStat
         physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         slivers: [
           SliverPadding(
-            padding: EdgeInsets.only(top: _statusBarHeight, bottom: 8),
+            padding: EdgeInsets.only(top: _statusBarHeight + 8),
             sliver: _isInitial
                 ? null
                 : CommonSliverRefreshControl(_refreshIconController, onRefresh: () async {
-                    _getProducts(true);
-                  }),
+              _getProducts(true);
+            }),
           ),
           SliverToBoxAdapter(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  children: const [
-                    SizedBox(width: 16),
+                  children: [
+                    const SizedBox(width: 16),
                     Text(
-                      'Shorts',
-                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
+                      S.current.shorts,
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
                     ),
-                    Spacer(),
+                    const Spacer(),
                     Text(
-                      'View all',
-                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+                      S.current.view_all,
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                   ],
                 ),
                 const SizedBox(height: 8),
                 _buildShortListView(),
                 const SizedBox(height: 16),
                 Row(
-                  children: const [
-                    SizedBox(width: 16),
+                  children: [
+                    const SizedBox(width: 16),
                     Text(
-                      'What\'s New',
-                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
+                      S.current.whats_new,
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
                     ),
-                    Spacer(),
+                    const Spacer(),
                     Text(
-                      'View all',
-                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+                      S.current.view_all,
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                   ],
                 ),
               ],
@@ -151,47 +154,7 @@ class _UniverseTabState extends State<UniverseTab> with SingleTickerProviderStat
               ),
               child: _isShimmerIndex(index)
                   ? null
-                  : ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: Stack(
-                        children: [
-                          Positioned(
-                            child: CommonWidget.image(
-                              _products[index].thumbnail,
-                              fit: BoxFit.cover,
-                            ),
-                            top: 0,
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                          ),
-                          Positioned(
-                            top: 8,
-                            left: 8,
-                            child: CircleAvatar(
-                              backgroundColor: colorShimmer,
-                              radius: 20,
-                              child: CircleAvatar(
-                                backgroundImage: NetworkImage(DataService.getFullUrl(_products[index].thumbnail)),
-                                radius: 16,
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            left: 8,
-                            right: 8,
-                            bottom: 8,
-                            child: Text(
-                              _products[index].shopName,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
+                  : _ShortItem(product: _products[index]),
             ),
           );
         },
@@ -202,15 +165,68 @@ class _UniverseTabState extends State<UniverseTab> with SingleTickerProviderStat
   Widget _buildPostsListView() {
     return SliverList(
       delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          return _isShimmerIndex(index) ? _buildPostsShimmerItem() : _buildPostsItem(_products[index]);
+            (context, index) {
+          return _isShimmerIndex(index) ? _ShimmerItem() : _PostsItem(product: _products[index]);
         },
         childCount: _isInitial ? shimmerItemCount : _products.length,
       ),
     );
   }
+}
 
-  Widget _buildPostsShimmerItem() {
+class _ShortItem extends StatelessWidget {
+  const _ShortItem({required this.product}) : super();
+  final Product product;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: Stack(
+        children: [
+          Positioned(
+            child: CommonWidget.image(
+              product.thumbnail,
+              fit: BoxFit.cover,
+            ),
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+          ),
+          Positioned(
+            top: 8,
+            left: 8,
+            child: CircleAvatar(
+              backgroundColor: colorShimmer,
+              radius: 20,
+              child: CircleAvatar(
+                backgroundImage: NetworkImage(DataService.getFullUrl(product.thumbnail)),
+                radius: 16,
+              ),
+            ),
+          ),
+          Positioned(
+            left: 8,
+            right: 8,
+            bottom: 8,
+            child: Text(
+              product.shopName,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+}
+
+class _ShimmerItem extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(top: 16, left: 16, right: 16),
       padding: const EdgeInsets.all(16),
@@ -328,8 +344,15 @@ class _UniverseTabState extends State<UniverseTab> with SingleTickerProviderStat
       ),
     );
   }
+}
 
-  Widget _buildPostsItem(Product product) {
+class _PostsItem extends StatelessWidget {
+  const _PostsItem({required this.product}) : super();
+
+  final Product product;
+
+  @override
+  Widget build(BuildContext context) {
     final random = Random();
     return Container(
       margin: const EdgeInsets.only(top: 16, left: 16, right: 16),
@@ -398,14 +421,7 @@ class _UniverseTabState extends State<UniverseTab> with SingleTickerProviderStat
             ),
           ),
           const SizedBox(height: 16),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: CommonWidget.image(
-              product.image,
-              fit: BoxFit.fitWidth,
-              shimmerHeight: 200,
-            ),
-          ),
+          _ContentImage(product: product),
           const SizedBox(height: 16),
           Row(
             children: [
@@ -420,7 +436,7 @@ class _UniverseTabState extends State<UniverseTab> with SingleTickerProviderStat
               const Icon(Icons.comment_rounded),
               const SizedBox(width: 8),
               Text(
-                random.nextInt(1000).toString() + ' Comments',
+                S.current.comments(random.nextInt(1000)),
                 style: const TextStyle(
                   fontSize: 12,
                 ),
@@ -428,15 +444,37 @@ class _UniverseTabState extends State<UniverseTab> with SingleTickerProviderStat
               const Spacer(),
               const Icon(Icons.share_rounded),
               const SizedBox(width: 8),
-              const Text(
-                'Share',
-                style: TextStyle(
+              Text(
+                S.current.share,
+                style: const TextStyle(
                   fontSize: 12,
                 ),
               ),
             ],
           )
         ],
+      ),
+    );
+  }
+}
+
+class _ContentImage extends StatelessWidget {
+  const _ContentImage({required this.product}) : super();
+  final Product product;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(createAnimateRoute(context, ImagePage(data: product.image)));
+      },
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: CommonWidget.image(
+          product.image,
+          fit: BoxFit.fitWidth,
+          shimmerHeight: 200,
+        ),
       ),
     );
   }

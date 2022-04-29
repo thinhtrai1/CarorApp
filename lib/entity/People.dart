@@ -34,4 +34,6 @@ class People {
       json['facebook'],
     );
   }
+
+  String get fullName => firstname + ' ' + lastname;
 }

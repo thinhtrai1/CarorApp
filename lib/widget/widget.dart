@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:caror/data/data_service.dart';
+import 'package:caror/generated/l10n.dart';
 import 'package:caror/themes/theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -38,27 +39,38 @@ class CommonWidget {
   }
 }
 
-Widget buildMaterialIcon(
-  IconData icon, {
-  Key? key,
-  double padding = 20,
-  Color color = Colors.black,
-  Color backgroundColor = Colors.transparent,
-  GestureTapCallback? onPressed,
-}) {
-  return Material(
-    key: key,
-    color: backgroundColor,
-    shape: const CircleBorder(),
-    child: InkWell(
-      customBorder: const CircleBorder(),
-      onTap: onPressed,
-      child: Padding(
-        padding: EdgeInsets.all(padding),
-        child: Icon(icon, color: color),
+class MaterialIconButton extends StatelessWidget {
+  const MaterialIconButton(
+    this.icon, {
+    Key? key,
+    this.padding = 20,
+    this.color = Colors.black,
+    this.backgroundColor = Colors.transparent,
+    this.onPressed,
+  }) : super(key: key);
+
+  final IconData icon;
+  final double padding;
+  final Color color;
+  final Color backgroundColor;
+  final GestureTapCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      key: key,
+      color: backgroundColor,
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onPressed,
+        child: Padding(
+          padding: EdgeInsets.all(padding),
+          child: Icon(icon, color: color),
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 class CommonSliverRefreshControl extends CupertinoSliverRefreshControl {
@@ -81,7 +93,7 @@ class CommonSliverRefreshControl extends CupertinoSliverRefreshControl {
                   child: refreshState == RefreshIndicatorMode.drag
                       ? Column(
                           children: [
-                            const Text('Pulling to refresh...'),
+                            Text(S.current.pulling_to_refresh),
                             SizedBox(height: max(0, pulledExtent / 5 - 7)),
                             AnimatedSwitcher(
                               duration: const Duration(milliseconds: 300),
@@ -92,7 +104,7 @@ class CommonSliverRefreshControl extends CupertinoSliverRefreshControl {
                         )
                       : Column(
                           children: [
-                            const Text('Refreshing...'),
+                            Text(S.current.refreshing),
                             SizedBox(height: max(0, pulledExtent / 5 - 7)),
                             AnimatedSwitcher(
                               duration: const Duration(milliseconds: 300),
@@ -118,8 +130,13 @@ class CommonSliverRefreshControl extends CupertinoSliverRefreshControl {
 }
 
 class CommonBackgroundContainer extends Stack {
-  CommonBackgroundContainer({Key? key, Widget? child, Color? color, EdgeInsetsGeometry? padding, double headerHeight = 160})
-      : super(
+  CommonBackgroundContainer({
+    Key? key,
+    Widget? child,
+    Color? color,
+    EdgeInsetsGeometry? padding,
+    double headerHeight = 160,
+  }) : super(
           key: key,
           children: [
             SizedBox(

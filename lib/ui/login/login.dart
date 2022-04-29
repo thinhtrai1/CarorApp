@@ -1,3 +1,4 @@
+import 'package:caror/generated/l10n.dart';
 import 'package:caror/ui/register/register.dart';
 import 'package:flutter/material.dart';
 
@@ -30,16 +31,17 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: CommonBackgroundContainer(
-        padding: const EdgeInsets.only(left: 32, right: 32, top: 64),
+        padding: const EdgeInsets.only(left: 32, right: 32),
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
           child: Column(
             children: [
-              const CommonTitleText('Sign In'),
+              const SizedBox(height: 64),
+              CommonTitleText(S.current.sign_in),
               const SizedBox(height: 32),
               LoginTextFieldBackground(
                 controller: _usernameController,
-                label: 'Username',
+                label: S.current.username,
               ),
               const SizedBox(height: 16),
               LoginTextFieldBackground(
@@ -50,7 +52,7 @@ class _LoginPageState extends State<LoginPage> {
                   style: const TextStyle(fontFamily: "Montserrat"),
                   decoration: InputDecoration(
                     border: InputBorder.none,
-                    labelText: "Password",
+                    labelText: S.current.password,
                     suffixIcon: IconButton(
                       icon: Icon(
                         _passwordVisible ? Icons.visibility : Icons.visibility_off,
@@ -69,8 +71,8 @@ class _LoginPageState extends State<LoginPage> {
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  child: const Text(
-                    "Forgot password?",
+                  child: Text(
+                    S.current.forgot_password,
                   ),
                   onPressed: () {},
                 ),
@@ -87,9 +89,9 @@ class _LoginPageState extends State<LoginPage> {
                     const Size(double.infinity, 56),
                   ),
                 ),
-                child: const Text(
-                  "Sign In",
-                  style: TextStyle(
+                child: Text(
+                  S.current.sign_in,
+                  style: const TextStyle(
                     fontFamily: "Montserrat",
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
@@ -101,7 +103,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 24),
               TextButton(
-                child: const Text("Or register an account"),
+                child: Text(S.current.or_register_an_account),
                 onPressed: () => Navigator.of(context).push(createRoute(const RegisterPage())),
               ),
               const SizedBox(height: 24),
@@ -114,17 +116,17 @@ class _LoginPageState extends State<LoginPage> {
 
   _doValidate() {
     if (_usernameController.text.trim().isEmpty) {
-      showToast('Please enter username!');
+      showToast(S.current.please_enter_password);
       return;
     } else if (_passwordController.text.trim().isEmpty) {
-      showToast('Please enter password!');
+      showToast(S.current.please_enter_password);
       return;
     }
     _login(_usernameController.text.trim(), _passwordController.text.trim());
   }
 
   _login(String username, String password) {
-    showLoading(context, message: 'Signing in...');
+    showLoading(context, message: S.current.signing_in);
     DataService.login(username, password).then((user) {
       Navigator.pop(context);
       if (user != null) {

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:caror/data/data_service.dart';
+import 'package:caror/generated/l10n.dart';
 import 'package:caror/themes/number.dart';
 import 'package:caror/themes/theme.dart';
 import 'package:caror/ui/product_detail/product_detail.dart';
@@ -63,10 +64,10 @@ class _ScanQRPageState extends State<ScanQRPage> {
                   borderRadius: BorderRadius.all(Radius.circular(24)),
                   color: Color(0x4DFFFFFF),
                 ),
-                child: const Text(
-                  'Scan Product QR',
+                child: Text(
+                  S.current.scan_product_qr,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
@@ -80,7 +81,7 @@ class _ScanQRPageState extends State<ScanQRPage> {
             left: screenWidth / 4 - 6,
             width: 64,
             height: 64,
-            child: buildMaterialIcon(
+            child: MaterialIconButton(
               Icons.flashlight_on_rounded,
               color: Colors.white,
               backgroundColor: const Color(0x4DFFFFFF),
@@ -96,7 +97,7 @@ class _ScanQRPageState extends State<ScanQRPage> {
             right: screenWidth / 4 - 6,
             width: 64,
             height: 64,
-            child: buildMaterialIcon(
+            child: MaterialIconButton(
               Icons.photo_library_rounded,
               color: Colors.white,
               backgroundColor: const Color(0x4DFFFFFF),
@@ -123,17 +124,17 @@ class _ScanQRPageState extends State<ScanQRPage> {
         }
       } on FormatException catch (_) {}
     }
-    showToast('Data error!');
+    showToast(S.current.data_error);
     Navigator.pop(context);
   }
 
   _getProducts(String id) {
-    showLoading(context, message: 'Loading data...');
+    showLoading(context, message: S.current.loading_data);
     DataService.getProductDetail(id).then((response) {
       Navigator.pop(context);
       if (response?.data != null) {
         Navigator.pop(context);
-        Navigator.of(context).push(createRoute(ProductDetailPage(response!.data!, Object)));
+        Navigator.of(context).push(createRoute(ProductDetailPage(response!.data!)));
       }
     });
   }

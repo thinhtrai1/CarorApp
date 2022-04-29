@@ -3,10 +3,27 @@ import 'package:caror/widget/widget.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
-class QrImagePage extends StatelessWidget {
-  const QrImagePage(this._encryptId, {Key? key}) : super(key: key);
+class ImagePage extends StatelessWidget {
+  const ImagePage({Key? key, required this.data}) : super(key: key);
 
-  final String _encryptId;
+  final String data;
+
+  @override
+  Widget build(BuildContext context) {
+    return InteractiveViewer(
+      child: Container(
+        alignment: Alignment.center,
+        color: Colors.black,
+        child: CommonWidget.image(data),
+      ),
+    );
+  }
+}
+
+class QrImagePage extends StatelessWidget {
+  const QrImagePage({required this.encryptId, Key? key}) : super(key: key);
+
+  final String encryptId;
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +33,7 @@ class QrImagePage extends StatelessWidget {
       color: Colors.black,
       child: QrImage(
         size: screenWidth - 60,
-        data: _encryptId,
+        data: encryptId,
         padding: EdgeInsets.zero,
         eyeStyle: const QrEyeStyle(
           eyeShape: QrEyeShape.square,
@@ -26,26 +43,6 @@ class QrImagePage extends StatelessWidget {
           dataModuleShape: QrDataModuleShape.square,
           color: Colors.white,
         ),
-      ),
-    );
-  }
-}
-
-class ImagePage extends StatelessWidget {
-  const ImagePage(this._data, {Key? key}) : super(key: key);
-
-  final String _data;
-
-  @override
-  Widget build(BuildContext context) {
-    final screenWidth = Number.getScreenWidth(context);
-    return Container(
-      alignment: Alignment.center,
-      color: Colors.black,
-      child: CommonWidget.image(
-        _data,
-        width: screenWidth - 60,
-        height: double.infinity
       ),
     );
   }

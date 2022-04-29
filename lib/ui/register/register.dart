@@ -1,3 +1,4 @@
+import 'package:caror/generated/l10n.dart';
 import 'package:caror/themes/util.dart';
 import 'package:flutter/material.dart';
 
@@ -36,17 +37,18 @@ class _RegisterPagePageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: CommonBackgroundContainer(
-        padding: const EdgeInsets.only(left: 32, right: 32, top: 64),
+        padding: const EdgeInsets.only(left: 32, right: 32),
         headerHeight: 120,
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
           child: Column(
             children: [
-              const CommonTitleText('Sign Up'),
+              const SizedBox(height: 64),
+              CommonTitleText(S.current.sign_up),
               const SizedBox(height: 32),
               LoginTextFieldBackground(
                 controller: _usernameController,
-                label: 'Username',
+                label: S.current.username,
               ),
               const SizedBox(height: 16),
               LoginTextFieldBackground(
@@ -57,7 +59,7 @@ class _RegisterPagePageState extends State<RegisterPage> {
                   style: const TextStyle(fontFamily: "Montserrat"),
                   decoration: InputDecoration(
                     border: InputBorder.none,
-                    labelText: "Password",
+                    labelText: S.current.password,
                     suffixIcon: IconButton(
                       icon: Icon(
                         _passwordVisible ? Icons.visibility : Icons.visibility_off,
@@ -75,7 +77,7 @@ class _RegisterPagePageState extends State<RegisterPage> {
               const SizedBox(height: 16),
               LoginTextFieldBackground(
                 controller: _emailController,
-                label: 'Email',
+                label: S.current.email,
               ),
               const SizedBox(height: 16),
               Row(
@@ -83,7 +85,7 @@ class _RegisterPagePageState extends State<RegisterPage> {
                   Flexible(
                     child: LoginTextFieldBackground(
                       controller: _firstnameController,
-                      label: 'Firstname',
+                      label: S.current.firstname,
                       textCapitalization: TextCapitalization.words,
                     ),
                   ),
@@ -91,7 +93,7 @@ class _RegisterPagePageState extends State<RegisterPage> {
                   Flexible(
                     child: LoginTextFieldBackground(
                       controller: _lastnameController,
-                      label: 'Lastname',
+                      label: S.current.lastname,
                       textCapitalization: TextCapitalization.words,
                       textInputAction: TextInputAction.done,
                     ),
@@ -110,9 +112,9 @@ class _RegisterPagePageState extends State<RegisterPage> {
                     const Size(double.infinity, 56),
                   ),
                 ),
-                child: const Text(
-                  "Sign Up",
-                  style: TextStyle(
+                child: Text(
+                  S.current.sign_up,
+                  style: const TextStyle(
                     fontFamily: "Montserrat",
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
@@ -131,22 +133,22 @@ class _RegisterPagePageState extends State<RegisterPage> {
 
   _doValidate() {
     if (_usernameController.text.trim().isEmpty) {
-      showToast('Please enter username!');
+      showToast(S.current.please_enter_username);
       return;
     } else if (_passwordController.text.trim().isEmpty) {
-      showToast('Please enter password!');
+      showToast(S.current.please_enter_password);
       return;
     } else if (_emailController.text.trim().isEmpty) {
-      showToast('Please enter email!');
+      showToast(S.current.please_enter_email);
       return;
     } else if (!isValidEmail(_emailController.text.trim())) {
-      showToast('Please enter valid email!');
+      showToast(S.current.please_enter_valid_email);
       return;
     } else if (_firstnameController.text.trim().isEmpty) {
-      showToast('Please enter firstname!');
+      showToast(S.current.firstname);
       return;
     } else if (_lastnameController.text.trim().isEmpty) {
-      showToast('Please enter lastname!');
+      showToast(S.current.please_enter_lastname);
       return;
     }
     _register(
@@ -159,7 +161,7 @@ class _RegisterPagePageState extends State<RegisterPage> {
   }
 
   _register(String username, String password, email, firstname, lastname) {
-    showLoading(context, message: 'Signing up...');
+    showLoading(context, message: S.current.signing_up);
     DataService.register(username, password, email, firstname, lastname).then((user) {
       Navigator.pop(context);
       if (user != null) {

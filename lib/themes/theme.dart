@@ -1,3 +1,5 @@
+import 'package:caror/data/shared_preferences.dart';
+import 'package:caror/generated/l10n.dart';
 import 'package:caror/widget/progress_bar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -5,8 +7,6 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 
 class App {
-  static final navigatorKey = GlobalKey<NavigatorState>();
-
   static const ask = 'com.app.caror.caror.MainActivity';
 }
 
@@ -35,6 +35,25 @@ class AppTheme {
 
 Route createRoute(Widget widget) {
   return CupertinoPageRoute(builder: (_) => widget);
+}
+
+Route createAnimateRoute(BuildContext parentContext, Widget page) {
+  return PageRouteBuilder<void>(
+    pageBuilder: (context, animation, secondaryAnimation) => page,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final windowSize = MediaQuery.of(parentContext).size;
+      final box = parentContext.findRenderObject() as RenderBox;
+      final rect = box.localToGlobal(Offset.zero) & box.size;
+      final relativeRect = RelativeRect.fromSize(rect, windowSize);
+      final tween = RelativeRectTween(begin: relativeRect, end: RelativeRect.fill);
+      final rectAnimation = tween.chain(CurveTween(curve: Curves.ease)).animate(animation);
+      return Stack(
+        children: [
+          PositionedTransition(rect: rectAnimation, child: child),
+        ],
+      );
+    },
+  );
 }
 
 void showToast(String? msg) {
@@ -67,9 +86,9 @@ void showLoading(BuildContext context, {String? message}) {
                 const CustomProgressBar(color: Colors.black, size: 32, duration: Duration(milliseconds: 500)),
                 const SizedBox(width: 8),
                 Text(
-                  message ?? 'Loading...',
+                  message ?? S.current.loading,
                   style: const TextStyle(
-                    fontFamily: "Montserrat",
+                    fontFamily: 'Montserrat',
                     fontSize: 14,
                     color: Colors.black,
                     decoration: TextDecoration.none,
@@ -90,4 +109,21 @@ const colorShadow = Color(0xFFE8E8E8);
 const colorDark = Color(0xFF444444);
 const colorLight = Color(0xFF888888);
 
-final dateFormat = DateFormat('MMMM dd \'at\' hh:mm', 'en_US');
+DateFormat get dateFormat => DateFormat('MMMM dd \'${S.current.at}\' hh:mm', AppPreferences.getLanguageCode());
+
+String getLanguageName(String code) {
+  switch (code) {
+    case 'vi':
+      return 'Việt Nam';
+    case 'ja':
+      return '日本';
+    case 'zh':
+      return '中文';
+    case 'es':
+      return 'Español';
+    case 'fr':
+      return 'Français';
+    default:
+      return 'English';
+  }
+}

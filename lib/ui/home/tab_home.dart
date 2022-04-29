@@ -1,7 +1,9 @@
 import 'dart:math';
 
+import 'package:animations/animations.dart';
 import 'package:caror/data/data_service.dart';
 import 'package:caror/entity/Product.dart';
+import 'package:caror/generated/l10n.dart';
 import 'package:caror/themes/theme.dart';
 import 'package:caror/themes/number.dart';
 import 'package:caror/ui/product_detail/product_detail.dart';
@@ -12,6 +14,10 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 import '../../widget/widget.dart';
+
+_goToProductDetail(BuildContext context, {required Product product, Object? heroTag}) {
+  Navigator.of(context).push(createRoute(ProductDetailPage(product, heroTag: heroTag)));
+}
 
 class HomeTab extends StatefulWidget {
   const HomeTab({Key? key}) : super(key: key);
@@ -76,10 +82,6 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin, Automa
     });
   }
 
-  _onItemPressed(Product product, {String? heroTag}) {
-    Navigator.of(context).push(createRoute(ProductDetailPage(product, heroTag ?? product.id)));
-  }
-
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -88,48 +90,68 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin, Automa
         TabBarView(
           controller: _tabController,
           children: [
-            _buildContentView(_ListViewFeature(_products, _isShimmerIndex, onPressed: _onItemPressed), _scrollController, sliverChild2: _buildListViewFeature3()),
-            _buildContentView(_buildListViewTrending(), _scrollController),
-            _buildContentView(_ListViewFavourites(onPressed: _onItemPressed, favourites: _favourites), null),
-            _buildContentView(_buildListViewNew(), _scrollController),
-            _buildContentView(_buildListViewRecent(), _scrollController),
+            HomeContentView(
+              child: _ListViewFeature(_products, isShimmerIndex: _isShimmerIndex),
+              controller: _scrollController,
+              child2: _buildListViewFeature3(),
+              isInitial: _isInitial,
+              refreshController: _refreshIconController,
+              statusBarHeight: _statusBarHeight,
+              onRefresh: _getProducts,
+            ),
+            HomeContentView(
+              child: _buildListViewTrending(),
+              controller: _scrollController,
+              isInitial: _isInitial,
+              refreshController: _refreshIconController,
+              statusBarHeight: _statusBarHeight,
+              onRefresh: _getProducts,
+            ),
+            HomeContentView(
+              child: _ListViewFavourites(favourites: _favourites),
+              isInitial: _isInitial,
+              refreshController: _refreshIconController,
+              statusBarHeight: _statusBarHeight,
+              onRefresh: _getProducts,
+            ),
+            HomeContentView(
+              child: _buildListViewNew(),
+              controller: _scrollController,
+              isInitial: _isInitial,
+              refreshController: _refreshIconController,
+              statusBarHeight: _statusBarHeight,
+              onRefresh: _getProducts,
+            ),
+            HomeContentView(
+              child: _buildListViewRecent(),
+              controller: _scrollController,
+              isInitial: _isInitial,
+              refreshController: _refreshIconController,
+              statusBarHeight: _statusBarHeight,
+              onRefresh: _getProducts,
+            ),
           ],
         ),
         Column(
-            children: [
-              Container(
-                padding: EdgeInsets.only(top: _statusBarHeight + 2),
-                color: Colors.white.withOpacity(0.9),
-                child: CustomTabBar(
-                  controller: _tabController,
-                ),
+          children: [
+            Container(
+              padding: EdgeInsets.only(top: _statusBarHeight + 2),
+              color: Colors.white.withOpacity(0.9),
+              child: CustomTabBar(
+                controller: _tabController,
+                chips: [
+                  S.of(context).featured,
+                  S.current.trending,
+                  S.current.favourite,
+                  S.current.new_,
+                  S.current.most_recent,
+                ],
               ),
-              const Divider(thickness: 1, height: 1, color: Color(0xFFCCCCCC)),
-            ],
-          ),
-      ],
-    );
-  }
-
-  _buildContentView(Widget sliverChild, ScrollController? controller, {Widget? sliverChild2}) {
-    return Shimmer(
-      linearGradient: Shimmer.shimmerGradient,
-      child: CustomScrollView(
-        controller: controller,
-        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-        slivers: [
-          if (!_isInitial)
-            SliverPadding(
-              padding: EdgeInsets.only(top: _statusBarHeight + 51),
-              sliver: CommonSliverRefreshControl(_refreshIconController, onRefresh: () async {
-                _getProducts(true);
-              }),
             ),
-          sliverChild,
-          if (sliverChild2 != null) sliverChild2,
-          const SliverPadding(padding: EdgeInsets.only(bottom: 80)),
-        ],
-      ),
+            const Divider(thickness: 1, height: 1, color: Color(0xFFCCCCCC)),
+          ],
+        ),
+      ],
     );
   }
 
@@ -141,13 +163,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin, Automa
     return SliverList(
       delegate: SliverChildBuilderDelegate(
         (context, index) {
-          return _isShimmerIndex(index)
-              ? const ShimmerLoading(child: _ProductShimmerItem())
-              : _RecentItem(
-                  _products[index],
-                  onPressed: _onItemPressed,
-                  offsetY: 0,
-                );
+          return _isShimmerIndex(index) ? const ShimmerLoading(child: _ProductShimmerItem()) : _RecentItem(_products[index], offsetY: 0);
         },
         childCount: _getItemCount(),
       ),
@@ -158,12 +174,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin, Automa
     return SliverList(
       delegate: SliverChildBuilderDelegate(
         (context, index) {
-          return _isShimmerIndex(index)
-              ? const ShimmerLoading(child: _TrendingShimmerItem(marginHorizontal: 16))
-              : _TrendingItem(
-                  _products[index],
-                  onPressed: _onItemPressed,
-                );
+          return _isShimmerIndex(index) ? const ShimmerLoading(child: _TrendingShimmerItem(marginHorizontal: 16)) : _TrendingItem(_products[index]);
         },
         childCount: _getItemCount(),
       ),
@@ -190,7 +201,7 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin, Automa
     return SliverList(
       delegate: SliverChildBuilderDelegate(
         (context, index) {
-          return _isShimmerIndex(index) ? const ShimmerLoading(child: _ProductShimmerItem()) : _RecentItem(_products[index], onPressed: _onItemPressed);
+          return _isShimmerIndex(index) ? const ShimmerLoading(child: _ProductShimmerItem()) : _RecentItem(_products[index]);
         },
         childCount: _getItemCount(),
       ),
@@ -198,12 +209,64 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin, Automa
   }
 }
 
-class _ListViewFeature extends StatelessWidget {
-  const _ListViewFeature(this._products, this._isShimmerIndex, {Key? key, this.onPressed}) : super(key: key);
+class HomeContentView extends StatelessWidget {
+  const HomeContentView({
+    Key? key,
+    required this.child,
+    this.controller,
+    this.child2,
+    required this.isInitial,
+    required this.refreshController,
+    required this.statusBarHeight,
+    required this.onRefresh,
+  }) : super(key: key);
+
+  final Widget child;
+  final ScrollController? controller;
+  final Widget? child2;
+  final double statusBarHeight;
+  final bool isInitial;
+  final AnimationController refreshController;
+  final Function(bool) onRefresh;
+
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer(
+      linearGradient: Shimmer.shimmerGradient,
+      child: CustomScrollView(
+        controller: controller,
+        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+        slivers: [
+          SliverPadding(
+            padding: EdgeInsets.only(top: statusBarHeight + 51),
+            sliver: isInitial
+                ? null
+                : CommonSliverRefreshControl(refreshController, onRefresh: () async {
+                    onRefresh(true);
+                  }),
+          ),
+          child,
+          if (child2 != null) child2!,
+          const SliverPadding(padding: EdgeInsets.only(bottom: 80)),
+        ],
+      ),
+    );
+  }
+}
+
+class _ListViewFeature extends StatefulWidget {
+  const _ListViewFeature(this._products, {Key? key, required this.isShimmerIndex}) : super(key: key);
 
   final List<Product> _products;
-  final Function(Product, {String? heroTag})? onPressed;
-  final bool Function(int) _isShimmerIndex;
+  final bool Function(int) isShimmerIndex;
+
+  @override
+  State<_ListViewFeature> createState() => _ListViewFeatureState();
+}
+
+class _ListViewFeatureState extends State<_ListViewFeature> {
+  int _currentPage = 500;
+  late final pageController = PageController(initialPage: _currentPage, viewportFraction: 0.7);
 
   @override
   Widget build(BuildContext context) {
@@ -213,12 +276,15 @@ class _ListViewFeature extends StatelessWidget {
           SizedBox(
             height: Number.getScreenWidth(context) / 2,
             child: PageView.builder(
-              controller: PageController(initialPage: 500, viewportFraction: 0.7),
+              controller: pageController,
+              onPageChanged: (position) {
+                _currentPage = position;
+              },
               itemBuilder: (context, index) {
-                if (_products.isEmpty || _isShimmerIndex(index % _products.length)) {
+                if (widget._products.isEmpty || widget.isShimmerIndex(index % widget._products.length)) {
                   return ShimmerLoading(
                     child: Container(
-                      margin: const EdgeInsets.only(top: 8, left: 8, right: 8),
+                      margin: const EdgeInsets.all(8),
                       decoration: const BoxDecoration(
                         borderRadius: BorderRadius.all(Radius.circular(16)),
                         color: colorShimmer,
@@ -226,12 +292,17 @@ class _ListViewFeature extends StatelessWidget {
                     ),
                   );
                 } else {
-                  return _FeatureItem1(_products[index % _products.length], onPressed: onPressed);
+                  return _FeatureItem1(
+                    product: widget._products[index % widget._products.length],
+                    index: index,
+                    currentPage: _currentPage,
+                    controller: pageController,
+                  );
                 }
               },
             ),
           ),
-          _FeatureList2(_products, _isShimmerIndex, onPressed: onPressed),
+          _FeatureList2(widget._products, widget.isShimmerIndex),
         ],
       ),
     );
@@ -239,29 +310,57 @@ class _ListViewFeature extends StatelessWidget {
 }
 
 class _FeatureItem1 extends StatelessWidget {
-  _FeatureItem1(this.product, {Key? key, this.onPressed}) : super(key: key);
+  _FeatureItem1({
+    Key? key,
+    required this.product,
+    required this.index,
+    required this.currentPage,
+    required this.controller,
+  }) : super(key: key);
 
   final Product product;
-  final Function(Product, {String? heroTag})? onPressed;
+  final int index;
+  final int currentPage;
+  final PageController controller;
   final GlobalKey _backgroundImageKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
     final heroTag = product.id.toString() + '-1';
-    return Padding(
-      padding: const EdgeInsets.only(left: 8, right: 8, top: 8),
-      child: GestureDetector(
-        onTap: () => onPressed?.call(product, heroTag: heroTag),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Stack(
-            children: [
-              Hero(
-                tag: heroTag,
-                child: _buildParallaxBackground(context),
-              ),
-              _buildTitle(),
-            ],
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, child) {
+        double value;
+        if (controller.position.haveDimensions) {
+          value = controller.page! - index;
+        } else {
+          value = currentPage - index.toDouble();
+        }
+        value = (1 - (value.abs() * .3)).clamp(0, 1).toDouble();
+        value = Curves.easeOut.transform(value);
+        return Center(
+          child: Transform(
+            transform: Matrix4.diagonal3Values(1.0, value, 1.0),
+            alignment: Alignment.center,
+            child: child,
+          ),
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: GestureDetector(
+          onTap: () => _goToProductDetail(context, product: product, heroTag: heroTag),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Stack(
+              children: [
+                Hero(
+                  tag: heroTag,
+                  child: _buildParallaxBackground(context),
+                ),
+                _buildTitle(),
+              ],
+            ),
           ),
         ),
       ),
@@ -310,10 +409,13 @@ class _FeatureItem1 extends StatelessWidget {
 }
 
 class _FeatureList2 extends StatefulWidget {
-  _FeatureList2(this._products, this._isShimmerIndex, {Key? key, this.onPressed}) : super(key: key);
+  _FeatureList2(
+    this._products,
+    this._isShimmerIndex, {
+    Key? key,
+  }) : super(key: key);
 
   final List<Product> _products;
-  final Function(Product, {String? heroTag})? onPressed;
   final bool Function(int) _isShimmerIndex;
   final _pageController = PageController(initialPage: 505, viewportFraction: 0.8);
 
@@ -353,21 +455,35 @@ class _FeatureList2State extends State<_FeatureList2> {
               ),
             );
           } else {
-            return _buildFeatureItem2(index);
+            return _FeatureItem2(
+              product: widget._products[index % widget._products.length],
+              isSelected: _currentPage == index,
+            );
           }
         },
       ),
     );
   }
+}
 
-  _buildFeatureItem2(int index) {
-    final product = widget._products[index % widget._products.length];
+class _FeatureItem2 extends StatelessWidget {
+  const _FeatureItem2({
+    Key? key,
+    required this.product,
+    required this.isSelected,
+  }) : super(key: key);
+
+  final Product product;
+  final bool isSelected;
+
+  @override
+  Widget build(BuildContext context) {
     final titles = product.name.split(' - ');
     final heroTag = product.id.toString() + '-2';
     return Padding(
       padding: const EdgeInsets.all(8),
       child: GestureDetector(
-        onTap: () => widget.onPressed?.call(product, heroTag: heroTag),
+        onTap: () => _goToProductDetail(context, product: product, heroTag: heroTag),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(16),
           child: Stack(
@@ -386,10 +502,10 @@ class _FeatureList2State extends State<_FeatureList2> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     AnimatedSlide(
-                      offset: _currentPage == index ? const Offset(0.0, 0.0) : const Offset(0.1, 0.0),
+                      offset: isSelected ? const Offset(0.0, 0.0) : const Offset(0.1, 0.0),
                       duration: const Duration(milliseconds: 700),
                       child: AnimatedOpacity(
-                        opacity: _currentPage == index ? 1 : 0,
+                        opacity: isSelected ? 1 : 0,
                         duration: const Duration(milliseconds: 1000),
                         child: Text(
                           titles[0],
@@ -413,10 +529,10 @@ class _FeatureList2State extends State<_FeatureList2> {
                       height: 4,
                     ),
                     AnimatedSlide(
-                      offset: _currentPage == index ? const Offset(0.0, 0.0) : const Offset(-0.1, 0.0),
+                      offset: isSelected ? const Offset(0.0, 0.0) : const Offset(-0.1, 0.0),
                       duration: const Duration(milliseconds: 700),
                       child: AnimatedOpacity(
-                        opacity: _currentPage == index ? 1 : 0,
+                        opacity: isSelected ? 1 : 0,
                         duration: const Duration(milliseconds: 1000),
                         child: Text(
                           titles.length > 1 ? titles[1] : titles[0],
@@ -447,10 +563,9 @@ class _FeatureList2State extends State<_FeatureList2> {
 }
 
 class _ListViewFavourites extends StatefulWidget {
-  const _ListViewFavourites({Key? key, this.onPressed, required this.favourites}) : super(key: key);
+  const _ListViewFavourites({Key? key, required this.favourites}) : super(key: key);
 
   final List<Product>? favourites;
-  final Function(Product)? onPressed;
 
   @override
   State<StatefulWidget> createState() => _ListViewFavouritesState();
@@ -473,15 +588,45 @@ class _ListViewFavouritesState extends State<_ListViewFavourites> {
         key: listKey,
         initialItemCount: widget.favourites!.length,
         itemBuilder: (_, index, animation) {
-          return _buildFavouriteItem(index, widget.favourites![index]);
+          return _FavouriteItem(
+            favourites: widget.favourites!,
+            index: index,
+            product: widget.favourites![index],
+            listKey: listKey,
+            expandedPosition: expandedPosition,
+            onExpanded: () => setState(() {}),
+            onChangeExpanded: (p) => expandedPosition = p,
+          );
         },
       );
     }
   }
+}
 
-  Widget _buildFavouriteItem(int index, Product item) {
+class _FavouriteItem extends StatelessWidget {
+  const _FavouriteItem({
+    Key? key,
+    required this.favourites,
+    required this.index,
+    required this.product,
+    required this.listKey,
+    required this.expandedPosition,
+    required this.onExpanded,
+    required this.onChangeExpanded,
+  }) : super(key: key);
+
+  final List<Product> favourites;
+  final int index;
+  final Product product;
+  final GlobalKey<SliverAnimatedListState> listKey;
+  final int expandedPosition;
+  final Function() onExpanded;
+  final Function(int) onChangeExpanded;
+
+  @override
+  Widget build(BuildContext context) {
     return Dismissible(
-      key: Key(item.id.toString()),
+      key: Key(product.id.toString()),
       background: Row(
         children: const [
           SizedBox(width: 40),
@@ -495,25 +640,25 @@ class _ListViewFavouritesState extends State<_ListViewFavourites> {
       ),
       onDismissed: (direction) {
         if (expandedPosition == index) {
-          expandedPosition = -1;
+          onChangeExpanded(-1);
         } else if (expandedPosition > index) {
-          expandedPosition -= 1;
+          onChangeExpanded(expandedPosition - 1);
         }
-        widget.favourites!.removeAt(index);
+        favourites.removeAt(index);
         listKey.currentState!.removeItem(index, (_, animation) => const SizedBox());
       },
       child: Stack(
         children: [
-          _RecentItem(item, onPressed: widget.onPressed, isExpanded: expandedPosition == index),
+          _RecentItem(product, isExpanded: expandedPosition == index),
           Positioned(
             bottom: 0,
             right: 16,
-            child: buildMaterialIcon(Icons.delete_rounded, padding: 12, onPressed: () {
-              expandedPosition = -1;
-              widget.favourites!.removeAt(index);
+            child: MaterialIconButton(Icons.delete_rounded, padding: 12, onPressed: () {
+              onChangeExpanded(-1);
+              favourites.removeAt(index);
               listKey.currentState!.removeItem(
                 index,
-                (_, animation) => SizeTransition(sizeFactor: animation, child: _buildFavouriteItem(index, item)),
+                (_, animation) => SizeTransition(sizeFactor: animation, child: this),
                 duration: const Duration(milliseconds: 200),
               );
             }),
@@ -524,10 +669,9 @@ class _ListViewFavouritesState extends State<_ListViewFavourites> {
             child: AnimatedRotation(
               turns: expandedPosition == index ? 0.5 : 0,
               duration: const Duration(milliseconds: 300),
-              child: buildMaterialIcon(Icons.expand_more_rounded, padding: 12, onPressed: () {
-                setState(() {
-                  expandedPosition = expandedPosition == index ? -1 : index;
-                });
+              child: MaterialIconButton(Icons.expand_more_rounded, padding: 12, onPressed: () {
+                onChangeExpanded(expandedPosition == index ? -1 : index);
+                onExpanded();
               }),
             ),
           ),
@@ -538,10 +682,9 @@ class _ListViewFavouritesState extends State<_ListViewFavourites> {
 }
 
 class _TrendingItem extends StatelessWidget {
-  _TrendingItem(this.product, {Key? key, this.onPressed}) : super(key: key);
+  _TrendingItem(this.product, {Key? key}) : super(key: key);
 
   final Product product;
-  final Function(Product)? onPressed;
   final GlobalKey _backgroundImageKey = GlobalKey();
 
   @override
@@ -565,7 +708,7 @@ class _TrendingItem extends StatelessWidget {
 
   Widget _buildParallaxBackground(BuildContext context) {
     return GestureDetector(
-      onTap: () => onPressed?.call(product),
+      onTap: () => _goToProductDetail(context, product: product, heroTag: product.id),
       child: Hero(
         tag: product.id,
         child: Flow(
@@ -630,7 +773,6 @@ class _TrendingItem extends StatelessWidget {
 class _RecentItem extends StatelessWidget {
   const _RecentItem(
     this.product, {
-    this.onPressed,
     this.isExpanded = false,
     this.offsetY = 2,
   }) : super();
@@ -638,99 +780,108 @@ class _RecentItem extends StatelessWidget {
   final Product product;
   final bool isExpanded;
   final double offsetY;
-  final Function(Product)? onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => onPressed?.call(product),
-      child: Container(
-        margin: const EdgeInsets.only(top: 8, left: 16, right: 16),
-        decoration: BoxDecoration(
-          borderRadius: const BorderRadius.all(Radius.circular(16)),
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: colorShadow,
-              offset: Offset(0, offsetY),
-              blurRadius: 4,
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: const BorderRadius.all(Radius.circular(16)),
-          child: IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Hero(
-                  tag: product.id,
-                  child: CommonWidget.image(
-                    product.thumbnail,
-                    fit: BoxFit.cover,
-                    width: 100,
-                    height: 100,
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          product.name + '\n',
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: isExpanded ? const EdgeInsets.only(top: 8, bottom: 16) : EdgeInsets.zero,
-                          child: isExpanded
-                              ? Text(
-                                  product.description,
-                                  textAlign: TextAlign.justify,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                )
-                              : null,
-                        ),
-                        const Spacer(),
-                        Text(
-                          Number.priceFormat(product.price),
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        RatingBar.builder(
-                          ignoreGestures: true,
-                          initialRating: product.rate,
-                          allowHalfRating: true,
-                          itemCount: 5,
-                          itemSize: 16,
-                          itemBuilder: (context, _) => const Icon(
-                            Icons.star_rounded,
-                            color: Colors.black,
-                          ),
-                          onRatingUpdate: (rating) {},
-                        ),
-                      ],
-                    ),
-                  ),
+    return OpenContainer(
+      openElevation: 0,
+      openBuilder: (context, closedContainer) {
+        return ProductDetailPage(product);
+      },
+      closedElevation: 0,
+      closedShape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+      closedBuilder: (context, openContainer) {
+        return GestureDetector(
+          onTap: openContainer,
+          child: Container(
+            margin: const EdgeInsets.only(top: 8, left: 16, right: 16),
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(16)),
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: colorShadow,
+                  offset: Offset(0, offsetY),
+                  blurRadius: 4,
                 ),
               ],
             ),
+            child: AnimatedSize(
+              clipBehavior: Clip.none,
+              duration: const Duration(milliseconds: 200),
+              alignment: Alignment.topCenter,
+              child: IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ClipRRect(
+                      borderRadius: const BorderRadius.only(topLeft: Radius.circular(16), bottomLeft: Radius.circular(16)),
+                      child: CommonWidget.image(
+                        product.thumbnail,
+                        fit: BoxFit.cover,
+                        width: 120,
+                        height: 100,
+                      ),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              product.name + '\n',
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            isExpanded
+                                ? Padding(
+                                    padding: const EdgeInsets.only(top: 8, bottom: 16),
+                                    child: Text(
+                                      product.description,
+                                      textAlign: TextAlign.justify,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  )
+                                : const Spacer(),
+                            Text(
+                              Number.priceFormat(product.price),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            RatingBar.builder(
+                              ignoreGestures: true,
+                              initialRating: product.rate,
+                              allowHalfRating: true,
+                              itemCount: 5,
+                              itemSize: 16,
+                              itemBuilder: (context, _) => const Icon(
+                                Icons.star_rounded,
+                                color: Colors.black,
+                              ),
+                              onRatingUpdate: (rating) {},
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -891,10 +1042,10 @@ class _TrendingShimmerItem extends StatelessWidget {
 }
 
 class CustomTabBar extends StatefulWidget {
-  CustomTabBar({Key? key, required this.controller}) : super(key: key);
+  const CustomTabBar({Key? key, required this.controller, required this.chips}) : super(key: key);
 
   final TabController controller;
-  final _chips = ['Featured Items', 'Trending', 'Favourite', 'New', 'Most recent'];
+  final List<String> chips;
 
   @override
   State<StatefulWidget> createState() => _CustomTabBarState();
@@ -903,9 +1054,7 @@ class CustomTabBar extends StatefulWidget {
 class _CustomTabBarState extends State<CustomTabBar> {
   @override
   void initState() {
-    widget.controller.addListener(() {
-      setState(() {});
-    });
+    widget.controller.addListener(() => setState(() {}));
     super.initState();
   }
 
@@ -923,7 +1072,7 @@ class _CustomTabBarState extends State<CustomTabBar> {
   }
 
   List<Tab> _getTabs() => List.generate(
-        widget._chips.length,
+        widget.chips.length,
         (index) => Tab(
           icon: widget.controller.index == index
               ? Container(
@@ -935,7 +1084,7 @@ class _CustomTabBarState extends State<CustomTabBar> {
                   alignment: Alignment.center,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Text(
-                    widget._chips[index],
+                    widget.chips[index],
                     style: const TextStyle(
                       fontSize: 14,
                       color: Colors.white,
@@ -954,7 +1103,7 @@ class _CustomTabBarState extends State<CustomTabBar> {
                   alignment: Alignment.center,
                   padding: const EdgeInsets.symmetric(horizontal: 14),
                   child: Text(
-                    widget._chips[index],
+                    widget.chips[index],
                     style: const TextStyle(
                       fontSize: 14,
                       color: Color(0xFF323232),

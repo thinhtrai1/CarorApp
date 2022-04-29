@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:caror/data/data_service.dart';
 import 'package:caror/entity/Product.dart';
+import 'package:caror/generated/l10n.dart';
 import 'package:caror/themes/number.dart';
 import 'package:caror/themes/theme.dart';
 import 'package:caror/widget/shimmer_loading.dart';
@@ -75,7 +76,7 @@ class _CartTabState extends State<CartTab> {
               children: [
                 SizedBox(height: _statusBarHeight + 32),
                 Text(
-                  'Orders (${_products.length} items)',
+                  S.current.orders_num_item(_products.length),
                   style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
                 ),
               ],
@@ -101,9 +102,9 @@ class _CartTabState extends State<CartTab> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Summary',
-                  style: TextStyle(
+                Text(
+                  S.current.summary,
+                  style: const TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 20,
                   ),
@@ -111,9 +112,9 @@ class _CartTabState extends State<CartTab> {
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    const Text(
-                      'Subtotal',
-                      style: TextStyle(
+                    Text(
+                      S.current.subtotal,
+                      style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
                       ),
@@ -131,9 +132,9 @@ class _CartTabState extends State<CartTab> {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    const Text(
-                      'Tax',
-                      style: TextStyle(
+                    Text(
+                      S.current.tax,
+                      style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
                       ),
@@ -151,9 +152,9 @@ class _CartTabState extends State<CartTab> {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    const Text(
-                      'Shipping & Handling',
-                      style: TextStyle(
+                    Text(
+                      S.current.shipping_handling,
+                      style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
                       ),
@@ -171,9 +172,9 @@ class _CartTabState extends State<CartTab> {
                 const SizedBox(height: 24),
                 Row(
                   children: [
-                    const Text(
-                      'Total',
-                      style: TextStyle(
+                    Text(
+                      S.current.total,
+                      style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 20,
                       ),
@@ -200,9 +201,9 @@ class _CartTabState extends State<CartTab> {
                       ),
                       padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 64, vertical: 12)),
                     ),
-                    child: const Text(
-                      "Checkout",
-                      style: TextStyle(
+                    child: Text(
+                      S.current.checkout,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -293,7 +294,7 @@ class _CartTabState extends State<CartTab> {
                           ],
                         ),
                       ),
-                      buildMaterialIcon(Icons.delete_rounded, padding: 8, onPressed: () {
+                      MaterialIconButton(Icons.delete_rounded, padding: 8, onPressed: () {
                         _products.removeAt(index);
                         _listKey.currentState!.removeItem(
                           index,
@@ -323,7 +324,7 @@ class _CartTabState extends State<CartTab> {
                         ),
                       ),
                       const Spacer(),
-                      buildMaterialIcon(Icons.remove_circle_outline_rounded, padding: 8, onPressed: () {
+                      MaterialIconButton(Icons.remove_circle_outline_rounded, padding: 8, onPressed: () {
                         if (product.qty > 0) setState(() => product.qty -= 1);
                       }),
                       Text(
@@ -334,7 +335,7 @@ class _CartTabState extends State<CartTab> {
                           fontSize: 18,
                         ),
                       ),
-                      buildMaterialIcon(
+                      MaterialIconButton(
                         Icons.add_circle_outline_rounded,
                         padding: 8,
                         onPressed: () => setState(() => product.qty += 1),
@@ -367,9 +368,7 @@ class _CartTabState extends State<CartTab> {
               ),
             ),
             const SizedBox(height: 16),
-            _buildShimmerItem(),
-            _buildShimmerItem(),
-            _buildShimmerItem(),
+            ...List.generate(3, (index) => _buildShimmerItem()),
             const SizedBox(height: 48),
             Container(
               width: 160,

@@ -1,7 +1,9 @@
 import 'package:caror/data/data_service.dart';
 import 'package:caror/entity/People.dart';
+import 'package:caror/generated/l10n.dart';
 import 'package:caror/themes/number.dart';
 import 'package:caror/themes/theme.dart';
+import 'package:caror/ui/chat/chat.dart';
 import 'package:caror/ui/home/home.dart';
 import 'package:caror/ui/login/login.dart';
 import 'package:caror/widget/shimmer_loading.dart';
@@ -10,6 +12,8 @@ import 'package:flutter/material.dart';
 
 class ChatTab extends StatefulWidget {
   const ChatTab({Key? key}) : super(key: key);
+
+  static bool isStart = true;
 
   @override
   State<ChatTab> createState() => _ChatTabState();
@@ -28,6 +32,7 @@ class _ChatTabState extends State<ChatTab> {
   initState() {
     _loginState = getLoginState();
     if (_loginState == LoginState.loggedIn) {
+      ChatTab.isStart = true;
       _getPeoples();
     }
     super.initState();
@@ -82,14 +87,14 @@ class _ChatTabState extends State<ChatTab> {
                 children: [
                   Expanded(
                     child: TextFormField(
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         border: InputBorder.none,
-                        hintText: 'Search name, phone number...',
+                        hintText: S.current.search_name_phone_number,
                       ),
                       style: const TextStyle(fontFamily: "Montserrat"),
                     ),
                   ),
-                  buildMaterialIcon(Icons.search_rounded, padding: 16, onPressed: () {}),
+                  MaterialIconButton(Icons.search_rounded, padding: 16, onPressed: () {}),
                 ],
               ),
             ),
@@ -105,11 +110,11 @@ class _ChatTabState extends State<ChatTab> {
                       ),
                     ),
                   )
-                : const Padding(
-                    padding: EdgeInsets.only(left: 16, bottom: 8),
+                : Padding(
+                    padding: const EdgeInsets.only(left: 16, bottom: 8),
                     child: Text(
-                      'Recent',
-                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
+                      S.current.recent,
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
                     ),
                   ),
             _buildHorizontalListView(true),
@@ -125,11 +130,11 @@ class _ChatTabState extends State<ChatTab> {
                       ),
                     ),
                   )
-                : const Padding(
-                    padding: EdgeInsets.only(left: 16, top: 24, bottom: 8),
+                : Padding(
+                    padding: const EdgeInsets.only(left: 16, top: 24, bottom: 8),
                     child: Text(
-                      'Friends',
-                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
+                      S.current.friends,
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
                     ),
                   ),
             _buildHorizontalListView(false),
@@ -150,13 +155,13 @@ class _ChatTabState extends State<ChatTab> {
                     children: [
                       const SizedBox(width: 16),
                       Text(
-                        'Contacts (${_peoples!.length})',
+                        S.current.contacts_number(_peoples!.length),
                         style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
                       ),
                       const Spacer(),
-                      const Text(
-                        'View all',
-                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+                      Text(
+                        S.current.view_all,
+                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
                       ),
                       const SizedBox(width: 16),
                     ],
@@ -181,34 +186,7 @@ class _ChatTabState extends State<ChatTab> {
         physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         scrollDirection: Axis.horizontal,
         itemBuilder: (context, index) {
-          return Stack(
-            children: [
-              ShimmerLoading(
-                isLoading: _isShimmerIndex(),
-                child: CircleAvatar(
-                  radius: 32,
-                  backgroundColor: colorShimmer,
-                  backgroundImage: _isShimmerIndex() ? null : NetworkImage(DataService.getFullUrl(peoples![index].avatar)),
-                ),
-              ),
-              if (!_isShimmerIndex() && activeIcon)
-                Positioned(
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white,
-                    ),
-                    child: const Icon(
-                      Icons.check_circle_rounded,
-                      color: colorLight,
-                      size: 20,
-                    ),
-                  ),
-                  right: 0,
-                  top: 0,
-                )
-            ],
-          );
+          return _HorizontalItem(people: peoples?[index], activeIcon: activeIcon);
         },
         padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: _getItemCount(),
@@ -222,97 +200,23 @@ class _ChatTabState extends State<ChatTab> {
       padding: EdgeInsets.zero,
       physics: const NeverScrollableScrollPhysics(),
       shrinkWrap: true,
-      itemCount: _peoples?.length ?? 5,
+      itemCount: _getItemCount(),
       itemBuilder: (context, index) {
         final people = _peoples?[index];
         return Padding(
           padding: const EdgeInsets.only(left: 16, right: 16, top: 12),
-          child: people == null
-              ? ShimmerLoading(
-                  child: Row(
-                    children: [
-                      const CircleAvatar(
-                        radius: 32,
-                        backgroundColor: colorShimmer,
-                      ),
-                      Column(
-                        children: [
-                          Container(
-                            margin: const EdgeInsets.only(left: 16),
-                            width: 200,
-                            height: 16,
-                            decoration: const BoxDecoration(
-                              borderRadius: BorderRadius.all(Radius.circular(8)),
-                              color: colorShimmer,
-                            ),
-                          ),
-                          Container(
-                            margin: const EdgeInsets.only(left: 16, top: 4),
-                            height: 16,
-                            width: 200,
-                            decoration: const BoxDecoration(
-                              borderRadius: BorderRadius.all(Radius.circular(8)),
-                              color: colorShimmer,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                )
-              : Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 32,
-                      backgroundColor: colorShimmer,
-                      backgroundImage: NetworkImage(DataService.getFullUrl(_peoples![index].avatar)),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            people.firstname + ' ' + people.lastname,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 2,
-                          ),
-                          Text(
-                            people.username,
-                            style: const TextStyle(
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.only(left: 8, right: 16),
-                      height: 12,
-                      width: 12,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ],
-                ),
+          child: people == null ? _VerticalShimmerItem() : _VerticalItem(index: index,people: _peoples![index]),
         );
       },
     );
   }
 
   Widget _buildLoggingInView() {
-    return const Center(
+    return Center(
       child: Text(
-        'Logging in...\nPlease come back in a moment',
+        S.current.logging_in_lease_come_back_in_a_moment,
         textAlign: TextAlign.center,
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 14,
           color: Colors.black,
         ),
@@ -333,7 +237,177 @@ class _ChatTabState extends State<ChatTab> {
         onPressed: () {
           Navigator.of(context).push(createRoute(const LoginPage()));
         },
-        child: const Text('Login and enjoy now!'),
+        child: Text(S.current.login_and_enjoy_now),
+      ),
+    );
+  }
+}
+
+class _HorizontalItem extends StatelessWidget {
+  const _HorizontalItem({this.people, required this.activeIcon}) : super();
+
+  final People? people;
+  final bool activeIcon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        ShimmerLoading(
+          isLoading: people == null,
+          child: CircleAvatar(
+            radius: 32,
+            backgroundColor: colorShimmer,
+            backgroundImage: people == null ? null : NetworkImage(DataService.getFullUrl(people!.avatar)),
+          ),
+        ),
+        if (people != null && activeIcon)
+          Positioned(
+            child: Container(
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white,
+              ),
+              child: const Icon(
+                Icons.check_circle_rounded,
+                color: colorLight,
+                size: 20,
+              ),
+            ),
+            right: 0,
+            top: 0,
+          )
+      ],
+    );
+  }
+}
+
+class _VerticalShimmerItem extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return ShimmerLoading(
+      child: Row(
+        children: [
+          const CircleAvatar(
+            radius: 32,
+            backgroundColor: colorShimmer,
+          ),
+          Column(
+            children: [
+              Container(
+                margin: const EdgeInsets.only(left: 16),
+                width: 200,
+                height: 16,
+                decoration: const BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(8)),
+                  color: colorShimmer,
+                ),
+              ),
+              Container(
+                margin: const EdgeInsets.only(left: 16, top: 4),
+                height: 16,
+                width: 200,
+                decoration: const BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(8)),
+                  color: colorShimmer,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _VerticalItem extends StatefulWidget {
+  const _VerticalItem({required this.index, required this.people}) : super();
+
+  final int index;
+  final People people;
+
+  @override
+  State<_VerticalItem> createState() => _VerticalItemState();
+}
+
+class _VerticalItemState extends State<_VerticalItem> {
+  bool _animate = false;
+
+  @override
+  void initState() {
+    ChatTab.isStart
+        ? Future.delayed(Duration(milliseconds: widget.index * 100), () {
+            setState(() {
+              _animate = true;
+              ChatTab.isStart = false;
+            });
+          })
+        : _animate = true;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 200),
+      opacity: _animate ? 1 : 0,
+      curve: Curves.easeInOutQuart,
+      child: AnimatedPadding(
+        duration: const Duration(milliseconds: 200),
+        padding: _animate ? EdgeInsets.zero : const EdgeInsets.only(top: 16),
+        child: InkWell(
+          onTap: () {
+            Navigator.of(context).push(createAnimateRoute(
+              context,
+              ChatPage(
+                name: widget.people.fullName,
+                thumbnail: widget.people.avatar,
+              ),
+            ));
+          },
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 32,
+                backgroundColor: colorShimmer,
+                backgroundImage: NetworkImage(DataService.getFullUrl(widget.people.avatar)),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.people.fullName,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 2,
+                    ),
+                    Text(
+                      widget.people.username,
+                      style: const TextStyle(
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                margin: const EdgeInsets.only(left: 8, right: 16),
+                height: 12,
+                width: 12,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.black,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
