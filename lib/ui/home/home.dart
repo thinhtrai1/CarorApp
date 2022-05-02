@@ -263,11 +263,11 @@ class BottomTabMiddleItem extends StatelessWidget {
     return Expanded(
       child: Center(
         child: Container(
-          width: 60,
+          width: 50,
           height: 50,
           margin: const EdgeInsets.only(bottom: 10),
           decoration: const BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(12)),
+            shape: BoxShape.circle,
             color: Colors.white,
             boxShadow: [
               BoxShadow(
@@ -321,9 +321,9 @@ class _BottomBarPaint extends CustomPainter {
       ..color = const Color(0xFFAFAFAF)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
     canvas.drawPath(shadowPath, shadowPaint);
-    final colorPath = Path()..moveTo(0, size.height);
+    final colorPath = Path()..moveTo(size.width, size.height);
     _createMainPath(colorPath, size)
-      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
       ..close();
     final colorPaint = Paint()..color = Colors.white;
     canvas.drawPath(colorPath, colorPaint);
@@ -332,16 +332,12 @@ class _BottomBarPaint extends CustomPainter {
   Path _createMainPath(Path path, Size size) {
     final centerX = size.width / 2;
     return path
-      ..lineTo(0, 0)
-      ..lineTo(centerX - 55, 0)
-      ..quadraticBezierTo(centerX - 35, 0, centerX - 35, 20)
-      ..lineTo(centerX - 35, size.height - 25)
-      ..quadraticBezierTo(centerX - 35, size.height - 5, centerX - 15, size.height - 5)
-      ..lineTo(centerX + 15, size.height - 5)
-      ..quadraticBezierTo(centerX + 35, size.height - 5, centerX + 35, size.height - 25)
-      ..lineTo(centerX + 35, 20)
-      ..quadraticBezierTo(centerX + 35, 0, centerX + 55, 0)
-      ..lineTo(size.width, 0);
+      ..lineTo(size.width, 0)
+      ..lineTo(centerX + 40, 0)
+      ..quadraticBezierTo(centerX + 30, 0, centerX + 30, 10)
+      ..cubicTo(centerX + 42, size.height + 10, centerX - 42, size.height + 10, centerX - 30, 10)
+      ..quadraticBezierTo(centerX - 30, 0, centerX - 40, 0)
+      ..lineTo(0, 0);
   }
 
   @override
