@@ -1,10 +1,13 @@
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:caror/data/data_service.dart';
 import 'package:caror/generated/l10n.dart';
 import 'package:caror/themes/theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
+import '../themes/number.dart';
 
 class CommonWidget {
   static Image image(
@@ -16,6 +19,7 @@ class CommonWidget {
     double? shimmerWidth,
     double? shimmerHeight,
     double shimmerRadius = 8,
+    Color shimmerColor = colorShimmer,
   }) {
     return Image.network(
       DataService.getFullUrl(path),
@@ -30,7 +34,7 @@ class CommonWidget {
                 height: height ?? shimmerHeight,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.all(Radius.circular(shimmerRadius)),
-                  color: colorShimmer,
+                  color: shimmerColor,
                 ),
               )
             : child;
@@ -43,6 +47,7 @@ class MaterialIconButton extends StatelessWidget {
   const MaterialIconButton(
     this.icon, {
     Key? key,
+    this.size,
     this.padding = 20,
     this.color = Colors.black,
     this.backgroundColor = Colors.transparent,
@@ -50,6 +55,7 @@ class MaterialIconButton extends StatelessWidget {
   }) : super(key: key);
 
   final IconData icon;
+  final double? size;
   final double padding;
   final Color color;
   final Color backgroundColor;
@@ -66,7 +72,7 @@ class MaterialIconButton extends StatelessWidget {
         onTap: onPressed,
         child: Padding(
           padding: EdgeInsets.all(padding),
-          child: Icon(icon, color: color),
+          child: Icon(icon, color: color, size: size),
         ),
       ),
     );
@@ -129,35 +135,59 @@ class CommonSliverRefreshControl extends CupertinoSliverRefreshControl {
         );
 }
 
-class CommonBackgroundContainer extends Stack {
-  CommonBackgroundContainer({
+class CommonBackgroundContainer extends StatelessWidget {
+  const CommonBackgroundContainer({
     Key? key,
-    Widget? child,
-    Color? color,
-    EdgeInsetsGeometry? padding,
-    double headerHeight = 160,
-  }) : super(
-          key: key,
-          children: [
-            SizedBox(
-              width: double.infinity,
-              height: headerHeight + 64,
-              child: const DecoratedBox(
-                decoration: BoxDecoration(color: Colors.black),
-              ),
+    this.child,
+    this.color,
+    this.padding,
+    this.headerHeight = 160,
+    this.isBack = false,
+  }) : super(key: key);
+
+  final Widget? child;
+  final Color? color;
+  final EdgeInsetsGeometry? padding;
+  final double headerHeight;
+  final bool isBack;
+
+  @override
+  Widget build(BuildContext context) {
+    final statusBarHeight = Number.getStatusBarHeight(context);
+    return Stack(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          height: headerHeight + 64,
+          child: const DecoratedBox(
+            decoration: BoxDecoration(color: Colors.black),
+          ),
+        ),
+        Container(
+          margin: EdgeInsets.only(top: headerHeight),
+          height: double.infinity,
+          child: child,
+          padding: padding,
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.only(topLeft: Radius.circular(64)),
+            color: color ?? Colors.white,
+          ),
+        ),
+        if (isBack)
+          Positioned(
+            left: 8,
+            top: statusBarHeight,
+            child: MaterialIconButton(
+              Icons.arrow_back_rounded,
+              padding: 13,
+              color: Colors.white,
+              backgroundColor: const Color(0x33FFFFFF),
+              onPressed: () => Navigator.pop(context),
             ),
-            Container(
-              margin: EdgeInsets.only(top: headerHeight),
-              height: double.infinity,
-              child: child,
-              padding: padding,
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.only(topLeft: Radius.circular(64)),
-                color: color ?? Colors.white,
-              ),
-            ),
-          ],
-        );
+          ),
+      ],
+    );
+  }
 }
 
 class CommonTitleText extends Text {
@@ -167,6 +197,7 @@ class CommonTitleText extends Text {
   }) : super(
           title,
           key: key,
+          textAlign: TextAlign.center,
           style: const TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.w600,
@@ -210,3 +241,70 @@ class LoginTextFieldBackground extends Container {
               ),
         );
 }
+
+final kTransparentImage = Uint8List.fromList([
+  0x89,
+  0x50,
+  0x4E,
+  0x47,
+  0x0D,
+  0x0A,
+  0x1A,
+  0x0A,
+  0x00,
+  0x00,
+  0x00,
+  0x0D,
+  0x49,
+  0x48,
+  0x44,
+  0x52,
+  0x00,
+  0x00,
+  0x00,
+  0x01,
+  0x00,
+  0x00,
+  0x00,
+  0x01,
+  0x08,
+  0x06,
+  0x00,
+  0x00,
+  0x00,
+  0x1F,
+  0x15,
+  0xC4,
+  0x89,
+  0x00,
+  0x00,
+  0x00,
+  0x0A,
+  0x49,
+  0x44,
+  0x41,
+  0x54,
+  0x78,
+  0x9C,
+  0x63,
+  0x00,
+  0x01,
+  0x00,
+  0x00,
+  0x05,
+  0x00,
+  0x01,
+  0x0D,
+  0x0A,
+  0x2D,
+  0xB4,
+  0x00,
+  0x00,
+  0x00,
+  0x00,
+  0x49,
+  0x45,
+  0x4E,
+  0x44,
+  0xAE
+]);

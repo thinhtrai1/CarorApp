@@ -67,5 +67,19 @@
   "refreshing": "さわやか...",
   "date_format": "MM'月'dd'日' hh:mm",
   "active": "アクティブです",
-  "is_any_body_here": "ここに誰かいますか？"
+  "is_any_body_here": "ここに誰かいますか？",
+  "profile": "プロフィール",
+  "country": "国",
+  "phone": "電話",
+  "facebook": "フェイスブック",
+  "posts": "投稿",
+  "followers": "フォロワー",
+  "following": "続く",
+  "photos": "写真",
+  "history": "歴史",
+  "events": "イベント",
+  "gifts": "ギフト",
+  "people_you_may_know": "知り合いかも",
+  "community": "コミュニティ",
+  "yours": "あなたのもの"
 }

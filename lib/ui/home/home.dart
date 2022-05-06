@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:caror/data/data_service.dart';
 import 'package:caror/data/shared_preferences.dart';
@@ -25,6 +27,10 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin 
   late LoginState loginState;
   bool isSound = false;
   AudioPlayer? _audioPlayer;
+
+  static HomePageState? of(BuildContext context) {
+    return context.findAncestorStateOfType<HomePageState>();
+  }
 
   checkSound({bool? value}) async {
     isSound = value ?? !isSound;
@@ -60,6 +66,7 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin 
             AppPreferences.setAccessToken(user.token);
             AppPreferences.setUsername(username);
             AppPreferences.setPassword(password);
+            AppPreferences.setUserInfo(jsonEncode(user.toJson()));
             loginState = LoginState.loggedIn;
           } else {
             loginState = LoginState.noLogin;
@@ -73,29 +80,32 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          TabBarView(
-            controller: _tabController,
-            physics: const BouncingScrollPhysics(),
-            children: const [
-              HomeTab(),
-              UniverseTab(),
-              CartTab(),
-              ChatTab(),
-              SettingTab(),
-            ],
-          ),
-          Positioned(
-            child: CustomPaint(
-              painter: _BottomBarPaint(),
-              child: _BottomBar(_tabController),
+      body: SafeArea(
+        top: false,
+        child: Stack(
+          children: [
+            TabBarView(
+              controller: _tabController,
+              physics: const BouncingScrollPhysics(),
+              children: const [
+                HomeTab(),
+                UniverseTab(),
+                CartTab(),
+                ChatTab(),
+                SettingTab(),
+              ],
             ),
-            bottom: 0,
-            left: 0,
-            right: 0,
-          ),
-        ],
+            Positioned(
+              child: CustomPaint(
+                painter: _BottomBarPaint(),
+                child: _BottomBar(_tabController),
+              ),
+              bottom: 0,
+              left: 0,
+              right: 0,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -313,18 +323,14 @@ class BottomTabMiddleItem extends StatelessWidget {
 class _BottomBarPaint extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final shadowPath = Path()..moveTo(0, size.height - 50);
-    _createMainPath(shadowPath, size)
-      ..lineTo(size.width, size.height - 50)
-      ..close();
+    final shadowPath = _createMainPath(Path()..moveTo(0, 10), size)
+      ..lineTo(size.width, 10);
     final shadowPaint = Paint()
-      ..color = const Color(0xFFAFAFAF)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+      ..color = const Color(0x33000000)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
     canvas.drawPath(shadowPath, shadowPaint);
-    final colorPath = Path()..moveTo(0, size.height);
-    _createMainPath(colorPath, size)
-      ..lineTo(size.width, size.height)
-      ..close();
+    final colorPath = _createMainPath(Path()..moveTo(0, size.height), size)
+      ..lineTo(size.width, size.height);
     final colorPaint = Paint()..color = Colors.white;
     canvas.drawPath(colorPath, colorPaint);
   }

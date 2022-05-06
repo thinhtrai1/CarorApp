@@ -1,5 +1,5 @@
 import 'package:caror/data/data_service.dart';
-import 'package:caror/entity/People.dart';
+import 'package:caror/entity/people.dart';
 import 'package:caror/generated/l10n.dart';
 import 'package:caror/themes/number.dart';
 import 'package:caror/themes/theme.dart';
@@ -24,13 +24,9 @@ class _ChatTabState extends State<ChatTab> {
   late final _statusBarHeight = Number.getStatusBarHeight(context);
   List<People>? _peoples;
 
-  LoginState? getLoginState() {
-    return context.findAncestorStateOfType<HomePageState>()?.loginState;
-  }
-
   @override
   initState() {
-    _loginState = getLoginState();
+    _loginState = HomePageState.of(context)?.loginState;
     if (_loginState == LoginState.loggedIn) {
       ChatTab.isStart = true;
       _getPeoples();
@@ -362,6 +358,7 @@ class _VerticalItemState extends State<_VerticalItem> {
               ChatPage(
                 name: widget.people.fullName,
                 thumbnail: widget.people.avatar,
+                people: widget.people,
               ),
             ));
           },

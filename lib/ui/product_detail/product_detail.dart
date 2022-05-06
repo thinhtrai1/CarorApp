@@ -11,7 +11,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:encrypt/encrypt.dart' as e;
 
 import '../../data/data_service.dart';
-import '../../entity/Product.dart';
+import '../../entity/product.dart';
 import '../../themes/number.dart';
 import '../../themes/theme.dart';
 

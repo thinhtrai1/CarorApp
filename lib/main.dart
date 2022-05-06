@@ -3,12 +3,15 @@ import 'package:caror/themes/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 import 'generated/l10n.dart';
 import 'ui/home/home.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  Future.delayed(const Duration(seconds: 1), () => FlutterNativeSplash.remove());
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -16,8 +19,6 @@ void main() async {
     ),
   );
   await AppPreferences.init();
-
-  //TODO #HOWTO: Why don't have SystemNavigationBar in iOS?
   runApp(const MyApp());
 }
 

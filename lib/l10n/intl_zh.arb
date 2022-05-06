@@ -67,5 +67,19 @@
   "refreshing": "刷新...",
   "date_format": "MM'月'dd'日' hh:mm",
   "active": "活跃",
-  "is_any_body_here": "有人在吗？"
+  "is_any_body_here": "有人在吗？",
+  "profile": "轮廓",
+  "country": "国家",
+  "phone": "电话",
+  "facebook": "Facebook",
+  "posts": "帖子",
+  "followers": "追随者",
+  "following": "下列的",
+  "photos": "相片",
+  "history": "历史",
+  "events": "活动",
+  "gifts": "礼物",
+  "people_you_may_know": "你可能认识的人",
+  "community": "社区",
+  "yours": "你的"
 }

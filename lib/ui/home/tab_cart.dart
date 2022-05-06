@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:caror/data/data_service.dart';
-import 'package:caror/entity/Product.dart';
+import 'package:caror/entity/product.dart';
 import 'package:caror/generated/l10n.dart';
 import 'package:caror/themes/number.dart';
 import 'package:caror/themes/theme.dart';
