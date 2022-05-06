@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:animations/animations.dart';
 import 'package:caror/data/data_service.dart';
-import 'package:caror/entity/Product.dart';
+import 'package:caror/entity/product.dart';
 import 'package:caror/generated/l10n.dart';
 import 'package:caror/themes/theme.dart';
 import 'package:caror/themes/number.dart';
@@ -603,7 +603,7 @@ class _ListViewFavouritesState extends State<_ListViewFavourites> {
   }
 }
 
-class _FavouriteItem extends StatelessWidget {
+class _FavouriteItem extends StatefulWidget {
   const _FavouriteItem({
     Key? key,
     required this.favourites,
@@ -624,41 +624,58 @@ class _FavouriteItem extends StatelessWidget {
   final Function(int) onChangeExpanded;
 
   @override
+  State<_FavouriteItem> createState() => _FavouriteItemState();
+}
+
+class _FavouriteItemState extends State<_FavouriteItem> {
+  var _swipeDirection = DismissDirection.startToEnd;
+
+  @override
   Widget build(BuildContext context) {
     return Dismissible(
-      key: Key(product.id.toString()),
+      key: Key(widget.product.id.toString()),
+      onUpdate: (direction) {
+        if (_swipeDirection != direction.direction) {
+          setState(() {
+            _swipeDirection = direction.direction;
+          });
+        }
+      },
       background: Row(
-        children: const [
-          SizedBox(width: 40),
-          Icon(Icons.arrow_forward_rounded),
-          Icon(Icons.delete_rounded),
-          Spacer(),
-          Icon(Icons.delete_rounded),
-          Icon(Icons.arrow_back_rounded),
-          SizedBox(width: 40),
-        ],
+        children: _swipeDirection == DismissDirection.startToEnd
+            ? const [
+                SizedBox(width: 40),
+                Icon(Icons.arrow_forward_rounded),
+                Icon(Icons.delete_rounded),
+              ]
+            : const [
+                Spacer(),
+                Icon(Icons.delete_rounded),
+                Icon(Icons.arrow_back_rounded),
+                SizedBox(width: 40),
+              ],
       ),
       onDismissed: (direction) {
-        if (expandedPosition == index) {
-          onChangeExpanded(-1);
-        } else if (expandedPosition > index) {
-          onChangeExpanded(expandedPosition - 1);
+        if (widget.expandedPosition == widget.index) {
+          widget.onChangeExpanded(-1);
+        } else if (widget.expandedPosition > widget.index) {
+          widget.onChangeExpanded(widget.expandedPosition - 1);
         }
-        favourites.removeAt(index);
-        listKey.currentState!.removeItem(index, (_, animation) => const SizedBox());
+        widget.favourites.removeAt(widget.index);
+        widget.listKey.currentState!.removeItem(widget.index, (_, animation) => const SizedBox());
       },
       child: Stack(
         children: [
-          _RecentItem(product, isExpanded: expandedPosition == index),
+          _RecentItem(widget.product, isExpanded: widget.expandedPosition == widget.index),
           Positioned(
             bottom: 0,
             right: 16,
             child: MaterialIconButton(Icons.delete_rounded, padding: 12, onPressed: () {
-              onChangeExpanded(-1);
-              favourites.removeAt(index);
-              listKey.currentState!.removeItem(
-                index,
-                (_, animation) => SizeTransition(sizeFactor: animation, child: this),
+              widget.onChangeExpanded(-1);
+              widget.favourites.removeAt(widget.index);
+              widget.listKey.currentState!.removeItem(
+                widget.index,
+                (_, animation) => SizeTransition(sizeFactor: animation, child: widget),
                 duration: const Duration(milliseconds: 200),
               );
             }),
@@ -667,11 +684,11 @@ class _FavouriteItem extends StatelessWidget {
             bottom: 0,
             right: 60,
             child: AnimatedRotation(
-              turns: expandedPosition == index ? 0.5 : 0,
+              turns: widget.expandedPosition == widget.index ? 0.5 : 0,
               duration: const Duration(milliseconds: 300),
               child: MaterialIconButton(Icons.expand_more_rounded, padding: 12, onPressed: () {
-                onChangeExpanded(expandedPosition == index ? -1 : index);
-                onExpanded();
+                widget.onChangeExpanded(widget.expandedPosition == widget.index ? -1 : widget.index);
+                widget.onExpanded();
               }),
             ),
           ),
@@ -783,29 +800,27 @@ class _RecentItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OpenContainer(
-      openElevation: 0,
-      openBuilder: (context, closedContainer) {
-        return ProductDetailPage(product);
-      },
-      closedElevation: 0,
-      closedShape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-      closedBuilder: (context, openContainer) {
-        return GestureDetector(
-          onTap: openContainer,
-          child: Container(
-            margin: const EdgeInsets.only(top: 8, left: 16, right: 16),
-            decoration: BoxDecoration(
-              borderRadius: const BorderRadius.all(Radius.circular(16)),
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: colorShadow,
-                  offset: Offset(0, offsetY),
-                  blurRadius: 4,
-                ),
-              ],
-            ),
+    return Container(
+      margin: const EdgeInsets.only(top: 8, left: 16, right: 16),
+      decoration: BoxDecoration(
+        borderRadius: const BorderRadius.all(Radius.circular(16)),
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: colorShadow,
+            offset: Offset(0, offsetY),
+            blurRadius: 4,
+          ),
+        ],
+      ),
+      child: OpenContainer(
+        openElevation: 0,
+        openBuilder: (context, closedContainer) => ProductDetailPage(product),
+        closedElevation: 0,
+        closedShape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
+        closedBuilder: (context, openContainer) {
+          return GestureDetector(
+            onTap: openContainer,
             child: AnimatedSize(
               clipBehavior: Clip.none,
               duration: const Duration(milliseconds: 200),
@@ -879,9 +894,9 @@ class _RecentItem extends StatelessWidget {
                 ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

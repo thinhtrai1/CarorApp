@@ -6,6 +6,9 @@ import 'package:caror/themes/theme.dart';
 import 'package:caror/widget/widget.dart';
 import 'package:flutter/material.dart';
 
+import '../../entity/people.dart';
+import '../profile/profile.dart';
+
 List<Message> randomMessage() {
   final messages = ['Hảo hán', 'Năm ngoái cô mới đá tôi', 'Không phải, anh nhầm rồi, người năm ngoái đá anh là 1 nhân cách khác của em', 'Hãy là một trap girl đẳng cấp'];
   final random = Random();
@@ -24,10 +27,12 @@ class ChatPage extends StatefulWidget {
     Key? key,
     required this.name,
     required this.thumbnail,
+    this.people,
   }) : super(key: key);
 
   final String name;
   final String thumbnail;
+  final People? people;
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -88,9 +93,19 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
                       color: Colors.black,
                       onPressed: () => Navigator.pop(context),
                     ),
-                    CircleAvatar(
-                      radius: 20,
-                      backgroundImage: NetworkImage(DataService.getFullUrl(widget.thumbnail)),
+                    GestureDetector(
+                      onTap: () {
+                        if (widget.people != null) {
+                          Navigator.of(context).push(createRoute(ProfilePage(people: widget.people!)));
+                        }
+                        },
+                      child: Hero(
+                        tag: 'avatar',
+                        child: CircleAvatar(
+                          radius: 20,
+                          backgroundImage: NetworkImage(DataService.getFullUrl(widget.thumbnail)),
+                        ),
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(

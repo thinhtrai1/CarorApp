@@ -22,6 +22,10 @@ class AppPreferences {
 
   static getPassword() => _getString('pref_password');
 
+  static setUserInfo(String userJson) => _setString('pref_user_info', userJson);
+
+  static getUserInfo() => _getString('pref_user_info');
+
   static setLanguageCode(String code) => _setString('pref_language_code', code);
 
   static getLanguageCode() => _getString('pref_language_code') ?? S.delegate.supportedLocales.first.languageCode;

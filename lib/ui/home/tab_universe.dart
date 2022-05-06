@@ -6,7 +6,7 @@ import 'package:caror/ui/product_detail/product_detail.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/data_service.dart';
-import '../../entity/Product.dart';
+import '../../entity/product.dart';
 import '../../themes/number.dart';
 import '../../themes/theme.dart';
 import '../../widget/shimmer_loading.dart';

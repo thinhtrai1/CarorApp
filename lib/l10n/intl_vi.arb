@@ -67,5 +67,19 @@
   "refreshing": "Đang làm mới...",
   "date_format": "dd MMMM 'lúc' hh:mm",
   "active": "Đang hoạt động",
-  "is_any_body_here": "Có ai ở đây không?"
+  "is_any_body_here": "Có ai ở đây không?",
+  "profile": "Trang cá nhân",
+  "country": "Quốc gia",
+  "phone": "Số điện thoại",
+  "facebook": "Facebook",
+  "posts": "Bài viết",
+  "followers": "Người theo dõi",
+  "following": "Đang theo dõi",
+  "photos": "Ảnh",
+  "history": "Lịch sử",
+  "events": "Sự kiện",
+  "gifts": "Quà tặng",
+  "people_you_may_know": "Những người bạn có thể biết",
+  "community": "Cộng đồng",
+  "yours": "Của bạn"
 }

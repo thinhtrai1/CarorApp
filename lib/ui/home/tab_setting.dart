@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import '../../themes/theme.dart';
 import '../../widget/widget.dart';
 import '../login/login.dart';
+import '../profile/profile.dart';
 import '../scan_qr/scan_qr.dart';
 import 'home.dart';
 
@@ -19,13 +20,15 @@ class SettingTab extends StatefulWidget {
 }
 
 class _SettingTabState extends State<SettingTab> {
+  final _isLoggedIn = AppPreferences.getUserInfo() != null;
   bool _isNotification = true;
   String _language = getLanguageName(AppPreferences.getLanguageCode());
-  HomePageState? homeState;
+  HomePageState? _homeState;
+  final GlobalKey _languageKey = GlobalKey();
 
   @override
   void initState() {
-    homeState = context.findAncestorStateOfType<HomePageState>();
+    _homeState = context.findAncestorStateOfType<HomePageState>();
     super.initState();
   }
 
@@ -39,15 +42,31 @@ class _SettingTabState extends State<SettingTab> {
           children: [
             CommonTitleText(S.of(context).settings),
             const SizedBox(height: 16),
-            _SettingItem(S.current.login, const Icon(Icons.arrow_right_rounded), () {
-              Navigator.of(context).push(createRoute(const LoginPage()));
-            }),
-            _SettingItem(S.current.scan_qr, const Icon(Icons.arrow_right_rounded), () {
-              Navigator.of(context).push(createRoute(const ScanQRPage()));
-            }),
+            if (_isLoggedIn)
+              _SettingItem(
+                S.current.profile,
+                child: const Icon(Icons.arrow_right_rounded),
+                onPressed: () {
+                  Navigator.of(context).push(createRoute(const ProfilePage()));
+                },
+              ),
+            _SettingItem(
+              S.current.login,
+              child: const Icon(Icons.arrow_right_rounded),
+              onPressed: () {
+                Navigator.of(context).push(createRoute(const LoginPage()));
+              },
+            ),
+            _SettingItem(
+              S.current.scan_qr,
+              child: const Icon(Icons.arrow_right_rounded),
+              onPressed: () {
+                Navigator.of(context).push(createRoute(const ScanQRPage()));
+              },
+            ),
             _SettingItem(
               S.current.notification,
-              Transform.scale(
+              child: Transform.scale(
                 scale: 0.7,
                 child: CupertinoSwitch(
                   activeColor: Colors.black,
@@ -59,32 +78,33 @@ class _SettingTabState extends State<SettingTab> {
                   },
                 ),
               ),
-              () => setState(() {
+              onPressed: () => setState(() {
                 _isNotification = !_isNotification;
               }),
             ),
             _SettingItem(
               S.current.sound,
-              Transform.scale(
+              child: Transform.scale(
                 scale: 0.7,
                 child: CupertinoSwitch(
                   activeColor: Colors.black,
-                  value: homeState?.isSound == true,
+                  value: _homeState?.isSound == true,
                   onChanged: (value) {
                     setState(() {
-                      homeState?.checkSound(value: value);
+                      _homeState?.checkSound(value: value);
                     });
                   },
                 ),
               ),
-              () => setState(() {
-                homeState?.checkSound();
+              onPressed: () => setState(() {
+                _homeState?.checkSound();
               }),
             ),
             _SettingItem(
               S.current.language,
-              DropdownButtonHideUnderline(
+              child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
+                  key: _languageKey,
                   borderRadius: BorderRadius.circular(8),
                   underline: const SizedBox(),
                   alignment: Alignment.centerRight,
@@ -97,43 +117,58 @@ class _SettingTabState extends State<SettingTab> {
                   }).toList(),
                   onChanged: (value) async {
                     if (value != null) {
+                      _language = value;
                       final locale = S.delegate.supportedLocales.firstWhere((e) => value == getLanguageName(e.languageCode));
                       AppPreferences.setLanguageCode(locale.languageCode);
                       MyApp.setLocale(context, locale);
-                      // setState(() {
-                        _language = value;
-                      // });
                     }
                   },
                 ),
               ),
-              () {},
+              onPressed: () {
+                BuildContext? context = _languageKey.currentContext;
+                while (context != null) {
+                  context!.visitChildElements((element) {
+                    if (element.widget is GestureDetector) {
+                      (element.widget as GestureDetector).onTap?.call();
+                      context = null;
+                    } else {
+                      context = element;
+                    }
+                  });
+                }
+              },
             ),
-            _SettingItem(S.current.information, const Icon(Icons.arrow_right_rounded), () {
-              Navigator.of(context).push(createRoute(const WebViewPage()));
-            }),
-            const SizedBox(height: 64),
-            Container(
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(24)),
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: colorShadow,
-                    offset: Offset(0, 1),
-                    blurRadius: 8,
+            _SettingItem(
+              S.current.information,
+              child: const Icon(Icons.arrow_right_rounded),
+              onPressed: () {
+                Navigator.of(context).push(createRoute(const WebViewPage()));
+              },
+            ),
+            const SizedBox(height: 48),
+            if (_isLoggedIn)
+              Container(
+                decoration: const BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(24)),
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: colorShadow,
+                      offset: Offset(0, 1),
+                      blurRadius: 8,
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
+                child: Text(
+                  S.current.logout,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
                   ),
-                ],
-              ),
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-              child: Text(
-                S.current.logout,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
                 ),
               ),
-            ),
             const SizedBox(height: 80),
           ],
         ),
@@ -143,7 +178,7 @@ class _SettingTabState extends State<SettingTab> {
 }
 
 class _SettingItem extends StatelessWidget {
-  const _SettingItem(this.title, this.child, this.onPressed, {Key? key}) : super(key: key);
+  const _SettingItem(this.title, {Key? key, required this.child, required this.onPressed}) : super(key: key);
 
   final String title;
   final Widget child;

@@ -1,11 +1,11 @@
 import 'dart:convert';
 
 import 'package:caror/data/shared_preferences.dart';
-import 'package:caror/entity/LoginResponse.dart';
-import 'package:caror/entity/ProductListResponse.dart';
-import 'package:caror/entity/ProductResponse.dart';
-import 'package:caror/entity/User.dart';
-import 'package:caror/entity/PeopleListResponse.dart';
+import 'package:caror/entity/login_response.dart';
+import 'package:caror/entity/product_list_response.dart';
+import 'package:caror/entity/product_response.dart';
+import 'package:caror/entity/user.dart';
+import 'package:caror/entity/people_list_response.dart';
 import 'package:caror/generated/l10n.dart';
 import 'package:caror/themes/theme.dart';
 import 'package:http/http.dart' as http;

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:caror/generated/l10n.dart';
 import 'package:caror/themes/util.dart';
 import 'package:flutter/material.dart';
@@ -37,6 +39,7 @@ class _RegisterPagePageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: CommonBackgroundContainer(
+        isBack: true,
         padding: const EdgeInsets.only(left: 32, right: 32),
         headerHeight: 120,
         child: SingleChildScrollView(
@@ -168,6 +171,7 @@ class _RegisterPagePageState extends State<RegisterPage> {
         AppPreferences.setAccessToken(user.token);
         AppPreferences.setUsername(username);
         AppPreferences.setPassword(password);
+        AppPreferences.setUserInfo(jsonEncode(user.toJson()));
         Navigator.pushAndRemoveUntil(
           context,
           createRoute(const HomePage(loginState: LoginState.loggedIn)),

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:caror/generated/l10n.dart';
 import 'package:caror/ui/register/register.dart';
 import 'package:flutter/material.dart';
@@ -31,6 +33,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: CommonBackgroundContainer(
+        isBack: true,
         padding: const EdgeInsets.only(left: 32, right: 32),
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -133,6 +136,7 @@ class _LoginPageState extends State<LoginPage> {
         AppPreferences.setAccessToken(user.token);
         AppPreferences.setUsername(username);
         AppPreferences.setPassword(password);
+        AppPreferences.setUserInfo(jsonEncode(user.toJson()));
         Navigator.pushAndRemoveUntil(
           context,
           createRoute(const HomePage(loginState: LoginState.loggedIn)),
