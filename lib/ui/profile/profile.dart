@@ -14,10 +14,23 @@ import '../../themes/number.dart';
 import '../../themes/theme.dart';
 import '../../widget/widget.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key, this.people}) : super(key: key);
 
   final People? people;
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  final _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +38,8 @@ class ProfilePage extends StatelessWidget {
     const corner = 20.0;
     final headerHeight = Number.getScreenWidth(context) * 2 / 3;
     final statusBarHeight = Number.getStatusBarHeight(context);
-    final People user = people ?? People.fromUser(jsonDecode(AppPreferences.getUserInfo()));
+    final backgroundImageHeight = headerHeight + radius * 2 + corner;
+    final People user = widget.people ?? People.fromUser(jsonDecode(AppPreferences.getUserInfo()));
     return Scaffold(
       body: Stack(
         children: [
@@ -33,13 +47,13 @@ class ProfilePage extends StatelessWidget {
             top: -radius,
             left: 0,
             right: 0,
-            height: headerHeight + radius * 2 + corner,
+            height: backgroundImageHeight,
             child: Container(
               color: Colors.black,
-              child: FadeInImage.memoryNetwork(
-                placeholder: kTransparentImage,
-                fit: BoxFit.cover,
-                image: DataService.getFullUrl(user.avatar),
+              child: _BackgroundImage(
+                _scrollController,
+                height: backgroundImageHeight,
+                user: user,
               ),
             ),
           ),
@@ -48,6 +62,7 @@ class ProfilePage extends StatelessWidget {
             child: const SizedBox(),
           ),
           SingleChildScrollView(
+            controller: _scrollController,
             physics: const BouncingScrollPhysics(),
             padding: EdgeInsets.only(top: headerHeight - radius + corner),
             child: CustomPaint(
@@ -197,6 +212,59 @@ class ProfilePage extends StatelessWidget {
   }
 }
 
+class _BackgroundImage extends StatefulWidget {
+  const _BackgroundImage(
+    this._scrollController, {
+    required this.height,
+    required this.user,
+  }) : super();
+
+  final ScrollController _scrollController;
+  final double height;
+  final People user;
+
+  @override
+  State<StatefulWidget> createState() => _BackgroundImageState();
+}
+
+class _BackgroundImageState extends State<_BackgroundImage> {
+  double _scale = 1;
+  double _translationY = 0;
+
+  @override
+  void initState() {
+    widget._scrollController.addListener(() {
+      if (widget._scrollController.offset < 0) {
+        setState(() {
+          _scale = -widget._scrollController.offset / widget.height + 1;
+          _translationY = 0;
+        });
+      } else if (widget._scrollController.offset < widget.height - 100) {
+        setState(() {
+          _scale = 1;
+          _translationY = -widget._scrollController.offset / 2;
+        });
+      }
+    });
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.translate(
+      offset: Offset(0, _translationY),
+      child: Transform.scale(
+        scale: _scale,
+        child: FadeInImage.memoryNetwork(
+          placeholder: kTransparentImage,
+          fit: BoxFit.cover,
+          image: DataService.getFullUrl(widget.user.avatar),
+        ),
+      ),
+    );
+  }
+}
+
 class _SuggestionListView extends StatefulWidget {
   @override
   State<_SuggestionListView> createState() => _SuggestionListViewState();
@@ -302,7 +370,10 @@ class _SuggestionItem extends StatelessWidget {
               padding: const EdgeInsets.only(left: 8),
               child: Text(
                 people.country,
-                style: const TextStyle(color: Colors.black, fontSize: 12,),
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 12,
+                ),
               ),
             ),
             Row(
@@ -310,13 +381,13 @@ class _SuggestionItem extends StatelessWidget {
                 MaterialIconButton(
                   Icons.person_add_rounded,
                   size: 20,
-                  padding: 8,
+                  padding: 6,
                   onPressed: () {},
                 ),
                 MaterialIconButton(
                   Icons.chat_rounded,
                   size: 20,
-                  padding: 8,
+                  padding: 6,
                   onPressed: () {},
                 ),
               ],
@@ -381,27 +452,27 @@ class _CommunityItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-            children: [
-              const SizedBox(height: 4),
-              Text(
-                Random().nextInt(1000).toString(),
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                title,
-                maxLines: 1,
-                style: const TextStyle(
-                  color: colorLight,
-                  fontSize: 14,
-                ),
-              ),
-              const SizedBox(height: 8),
-            ],
+      children: [
+        const SizedBox(height: 4),
+        Text(
+          Random().nextInt(1000).toString(),
+          style: const TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          title,
+          maxLines: 1,
+          style: const TextStyle(
+            color: colorLight,
+            fontSize: 14,
+          ),
+        ),
+        const SizedBox(height: 8),
+      ],
     );
   }
 }

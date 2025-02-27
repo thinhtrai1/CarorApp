@@ -20,7 +20,7 @@ class SettingTab extends StatefulWidget {
 }
 
 class _SettingTabState extends State<SettingTab> {
-  final _isLoggedIn = AppPreferences.getUserInfo() != null;
+  bool _isLoggedIn = AppPreferences.getUserInfo() != null;
   bool _isNotification = true;
   String _language = getLanguageName(AppPreferences.getLanguageCode());
   HomePageState? _homeState;
@@ -50,13 +50,14 @@ class _SettingTabState extends State<SettingTab> {
                   Navigator.of(context).push(createRoute(const ProfilePage()));
                 },
               ),
-            _SettingItem(
-              S.current.login,
-              child: const Icon(Icons.arrow_right_rounded),
-              onPressed: () {
-                Navigator.of(context).push(createRoute(const LoginPage()));
-              },
-            ),
+            if (!_isLoggedIn)
+              _SettingItem(
+                S.current.login,
+                child: const Icon(Icons.arrow_right_rounded),
+                onPressed: () {
+                  Navigator.of(context).push(createRoute(const LoginPage()));
+                },
+              ),
             _SettingItem(
               S.current.scan_qr,
               child: const Icon(Icons.arrow_right_rounded),
@@ -118,7 +119,8 @@ class _SettingTabState extends State<SettingTab> {
                   onChanged: (value) async {
                     if (value != null) {
                       _language = value;
-                      final locale = S.delegate.supportedLocales.firstWhere((e) => value == getLanguageName(e.languageCode));
+                      final locale = S.delegate.supportedLocales
+                          .firstWhere((e) => value == getLanguageName(e.languageCode));
                       AppPreferences.setLanguageCode(locale.languageCode);
                       MyApp.setLocale(context, locale);
                     }
@@ -148,26 +150,35 @@ class _SettingTabState extends State<SettingTab> {
             ),
             const SizedBox(height: 48),
             if (_isLoggedIn)
-              Container(
-                decoration: const BoxDecoration(
-                  borderRadius: BorderRadius.all(Radius.circular(24)),
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: colorShadow,
-                      offset: Offset(0, 1),
-                      blurRadius: 8,
+              InkWell(
+                child: Container(
+                  decoration: const BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(24)),
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: colorShadow,
+                        offset: Offset(0, 1),
+                        blurRadius: 8,
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
+                  child: Text(
+                    S.current.logout,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                     ),
-                  ],
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-                child: Text(
-                  S.current.logout,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
                   ),
                 ),
+                onTap: () {
+                  AppPreferences.logout();
+                  setState(() {
+                    _isLoggedIn = false;
+                    HomePageState.of(context)?.loginState = LoginState.noLogin;
+                  });
+                },
               ),
             const SizedBox(height: 80),
           ],
@@ -178,7 +189,8 @@ class _SettingTabState extends State<SettingTab> {
 }
 
 class _SettingItem extends StatelessWidget {
-  const _SettingItem(this.title, {Key? key, required this.child, required this.onPressed}) : super(key: key);
+  const _SettingItem(this.title, {Key? key, required this.child, required this.onPressed})
+      : super(key: key);
 
   final String title;
   final Widget child;
@@ -195,9 +207,9 @@ class _SettingItem extends StatelessWidget {
             Row(
               children: [
                 Text(
-                  title.toUpperCase(),
+                  title,
                   style: const TextStyle(
-                    fontSize: 14,
+                    fontSize: 16,
                     color: Colors.black,
                     fontWeight: FontWeight.w600,
                   ),

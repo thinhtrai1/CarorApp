@@ -458,7 +458,7 @@ class _CustomQrImage extends StatelessWidget {
       onTap: () {
         Navigator.of(context).push(createAnimateRoute(context, QrImagePage(encryptId: _encryptId)));
       },
-      child: QrImage(
+      child: QrImageView(
         data: _encryptId,
         padding: EdgeInsets.zero,
         size: 80,

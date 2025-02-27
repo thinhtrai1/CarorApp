@@ -35,7 +35,6 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin, Automa
   late final _tabController = TabController(length: 5, vsync: this);
   late final _refreshIconController = AnimationController(duration: const Duration(milliseconds: 500), vsync: this)..repeat();
   List<Product>? _favourites;
-  late final _statusBarHeight = Number.getStatusBarHeight(context);
 
   @override
   bool get wantKeepAlive => true;
@@ -85,6 +84,8 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin, Automa
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final _statusBarHeight = Number.getStatusBarHeight(context);
+
     return Stack(
       children: [
         TabBarView(

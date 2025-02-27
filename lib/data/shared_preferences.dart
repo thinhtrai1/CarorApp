@@ -29,4 +29,11 @@ class AppPreferences {
   static setLanguageCode(String code) => _setString('pref_language_code', code);
 
   static getLanguageCode() => _getString('pref_language_code') ?? S.delegate.supportedLocales.first.languageCode;
+
+  static logout() {
+    _instance.remove('pref_token');
+    _instance.remove('pref_username');
+    _instance.remove('pref_password');
+    _instance.remove('pref_user_info');
+  }
 }

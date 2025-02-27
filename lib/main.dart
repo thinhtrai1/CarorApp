@@ -62,6 +62,15 @@ class MyAppState extends State<MyApp> {
         primaryColor: AppTheme.primaryColor,
         primarySwatch: AppTheme.primarySwatch,
         scaffoldBackgroundColor: Colors.white,
+        colorScheme: const ColorScheme.light(
+          primary: Colors.black,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.black,
+            foregroundColor: Colors.white,
+          ),
+        ),
       ),
       home: const HomePage(),
     );

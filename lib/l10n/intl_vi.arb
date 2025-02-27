@@ -62,6 +62,7 @@
   "loading_data": "Đang tải dữ liệu...",
   "loading": "Đang tải...",
   "an_error_occurred": "Đã có lỗi xảy ra!",
+  "network_error": "Đã có lỗi xảy ra! Vui lòng kiểm tra kết nối mạng của bạn.",
   "server_error": "Lỗi máy chủ!",
   "pulling_to_refresh": "Đang kéo để làm mới...",
   "refreshing": "Đang làm mới...",

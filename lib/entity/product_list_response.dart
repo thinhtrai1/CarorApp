@@ -8,10 +8,11 @@ class ProductListResponse {
   ProductListResponse(this.data, this.message, this.isLoadMore);
 
   factory ProductListResponse.fromJson(Map<String, dynamic> json) {
+    final data = json['data'];
     return ProductListResponse(
-      (json['data'] as List).map((e) => Product.fromJson(e)).toList(),
-      json['message'],
-      json['isLoadMore'],
+      (data['items'] as List).map((e) => Product.fromJson(e)).toList(),
+      data['message'],
+      data['has_next'],
     );
   }
 }

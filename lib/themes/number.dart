@@ -10,5 +10,5 @@ class Number {
 
   static double getScreenWidth(BuildContext context) => MediaQuery.of(context).size.width;
 
-  static double getStatusBarHeight(BuildContext context) => MediaQuery.of(context).viewPadding.top;
+  static double getStatusBarHeight(BuildContext context) => MediaQuery.of(context).padding.top;
 }
