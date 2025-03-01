@@ -21,7 +21,7 @@ class People {
     this.facebook,
   );
 
-  factory People.fromJson(Map<String, dynamic> json) {
+  factory People.fromJson(dynamic json) {
     return People(
       json['id'],
       json['username'],

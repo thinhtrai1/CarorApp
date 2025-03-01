@@ -8,7 +8,7 @@ class User {
 
   User(this.id, this.username, this.email, this.firstName, this.lastName, this.token);
 
-  factory User.fromJson(Map<String, dynamic> json) {
+  factory User.fromJson(dynamic json) {
     return User(
       json['id'],
       json['username'],

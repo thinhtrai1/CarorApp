@@ -42,7 +42,7 @@ app.*.map.json
 
 # Android Studio will place build artifacts here
 pubspec.lock
-/lib/generated/
+**/generated/
 /android/app/debug
 /android/app/profile
 /android/app/release

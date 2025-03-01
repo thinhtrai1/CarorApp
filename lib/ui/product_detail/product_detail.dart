@@ -1,7 +1,8 @@
 import 'dart:math';
 
 import 'package:animations/animations.dart';
-import 'package:caror/generated/l10n.dart';
+import 'package:caror/data/shared_preferences.dart';
+import 'package:caror/resources/generated/l10n.dart';
 import 'package:caror/ui/chat/chat.dart';
 import 'package:caror/ui/image/image.dart';
 import 'package:caror/widget/widget.dart';
@@ -9,14 +10,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:encrypt/encrypt.dart' as e;
+import 'package:share_plus/share_plus.dart';
 
 import '../../data/data_service.dart';
 import '../../entity/product.dart';
-import '../../themes/number.dart';
-import '../../themes/theme.dart';
+import '../../resources/number.dart';
+import '../../resources/theme.dart';
 
-class ProductDetailPage extends StatefulWidget {
-  const ProductDetailPage(this._product, {Key? key, this.heroTag}) : super(key: key);
+class ProductDetailPage<S> extends StatefulWidget {
+  const ProductDetailPage(
+    this._product, {
+    Key? key,
+    this.heroTag,
+  }) : super(key: key);
 
   final Product _product;
   final Object? heroTag;
@@ -25,6 +31,8 @@ class ProductDetailPage extends StatefulWidget {
   State<StatefulWidget> createState() {
     return _ProductDetailState();
   }
+
+  static const resultCart = 'cart';
 }
 
 class _ProductDetailState extends State<ProductDetailPage> {
@@ -32,7 +40,7 @@ class _ProductDetailState extends State<ProductDetailPage> {
   final _scrollController = ScrollController();
   final _headerHeight = 280.0;
   final _commentNumber = Random().nextInt(1000);
-  late String _encryptId;
+  late String _encryptQR;
 
   @override
   void dispose() {
@@ -46,7 +54,7 @@ class _ProductDetailState extends State<ProductDetailPage> {
     final iv = e.IV.fromLength(16);
     final encrypter = e.Encrypter(e.AES(key));
     final encrypted = encrypter.encrypt(widget._product.id.toString(), iv: iv);
-    _encryptId = '{"id":"${encrypted.base64}"}';
+    _encryptQR = '{"id":"${encrypted.base64}", "iv": "${iv.base64}"}';
     super.initState();
   }
 
@@ -110,7 +118,8 @@ class _ProductDetailState extends State<ProductDetailPage> {
               margin: EdgeInsets.only(top: _headerHeight - 16),
               decoration: const BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16)),
+                borderRadius:
+                    BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16)),
               ),
               child: Column(
                 children: [
@@ -175,12 +184,11 @@ class _ProductDetailState extends State<ProductDetailPage> {
                               SizedBox(
                                 height: 80,
                                 width: 80,
-                                child: _CustomQrImage(_encryptId),
+                                child: _CustomQrImage(_encryptQR),
                               ),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
-                                  // CommonIcon(Icons.favorite_border_rounded, onPressed: () {}),
                                   Text(
                                     product.shopName,
                                     style: const TextStyle(
@@ -265,8 +273,11 @@ class _ProductDetailState extends State<ProductDetailPage> {
                         Row(
                           children: [
                             const SelectionPopupIcon(Icons.favorite_border_rounded, padding: 16),
-                            MaterialIconButton(Icons.share_rounded, padding: 16, onPressed: () {}),
                             MaterialIconButton(Icons.chat_rounded, padding: 16, onPressed: () {}),
+                            MaterialIconButton(Icons.share_rounded, padding: 16, onPressed: () {
+                              Share.share(
+                                  '${product.name}\n\n${product.description}\n\n${S.current.visit_caror_to_enjoy_now}');
+                            }),
                             const Spacer(),
                             MaterialIconButton(
                               Icons.remove_circle_outline_rounded,
@@ -294,12 +305,14 @@ class _ProductDetailState extends State<ProductDetailPage> {
                           alignment: Alignment.topRight,
                           child: ElevatedButton(
                             style: ButtonStyle(
-                              shape: MaterialStateProperty.all(
+                              shape: WidgetStateProperty.all(
                                 RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(24),
                                 ),
                               ),
-                              padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 64, vertical: 12)),
+                              padding: WidgetStateProperty.all(
+                                const EdgeInsets.symmetric(horizontal: 64, vertical: 12),
+                              ),
                             ),
                             child: Text(
                               S.current.add_to_cart,
@@ -308,7 +321,19 @@ class _ProductDetailState extends State<ProductDetailPage> {
                                 fontSize: 16,
                               ),
                             ),
-                            onPressed: () {},
+                            onPressed: () async {
+                              if (product.qty == 0) return;
+                              AppPreferences.addToCart(product.id, product.qty);
+                              final result = await showModalBottomSheet(
+                                context: context,
+                                builder: (context) {
+                                  return const AddToCartSuccessBottomSheet();
+                                },
+                              );
+                              if (result == true) {
+                                Navigator.pop(context, ProductDetailPage.resultCart);
+                              }
+                            },
                           ),
                         ),
                       ],
@@ -326,7 +351,11 @@ class _ProductDetailState extends State<ProductDetailPage> {
                         ),
                       ),
                       const Spacer(),
-                      MaterialIconButton(Icons.arrow_forward_rounded, padding: 16, onPressed: () {}),
+                      MaterialIconButton(
+                        Icons.arrow_forward_rounded,
+                        padding: 16,
+                        onPressed: () {},
+                      ),
                     ],
                   ),
                   _buildSuggestListView(product),
@@ -341,7 +370,11 @@ class _ProductDetailState extends State<ProductDetailPage> {
                         ),
                       ),
                       const Spacer(),
-                      MaterialIconButton(Icons.arrow_forward_rounded, padding: 16, onPressed: () {}),
+                      MaterialIconButton(
+                        Icons.arrow_forward_rounded,
+                        padding: 16,
+                        onPressed: () {},
+                      ),
                     ],
                   ),
                   _buildSuggestListView(product),
@@ -486,14 +519,16 @@ class _AvatarAnimateImage extends StatefulWidget {
   State<StatefulWidget> createState() => _AvatarAnimateImageState();
 }
 
-class _AvatarAnimateImageState extends State<_AvatarAnimateImage> with SingleTickerProviderStateMixin {
+class _AvatarAnimateImageState extends State<_AvatarAnimateImage>
+    with SingleTickerProviderStateMixin {
   late Animation<double> _avatarAnimation;
   late AnimationController _animationController;
   final _radius = 50.0;
 
   @override
   void initState() {
-    _animationController = AnimationController(duration: const Duration(milliseconds: 200), vsync: this);
+    _animationController =
+        AnimationController(duration: const Duration(milliseconds: 200), vsync: this);
     _avatarAnimation = Tween<double>(begin: 0, end: 1).animate(_animationController);
     Future.delayed(const Duration(milliseconds: 300), () => _animationController.forward());
     widget._scrollController.addListener(() {
@@ -511,7 +546,8 @@ class _AvatarAnimateImageState extends State<_AvatarAnimateImage> with SingleTic
   }
 
   late final double _width = Number.getScreenWidth(context) - _radius * 1.5 - 16 - 8;
-  late final double _ratio = _width / (widget._headerHeight - 16 - _radius - widget._statusHeight + _radius / 2);
+  late final double _ratio =
+      _width / (widget._headerHeight - 16 - _radius - widget._statusHeight + _radius / 2);
 
   @override
   Widget build(BuildContext context) {
@@ -565,9 +601,11 @@ class SelectionPopupIcon extends StatefulWidget {
   State<SelectionPopupIcon> createState() => _SelectionPopupIconState();
 }
 
-class _SelectionPopupIconState extends State<SelectionPopupIcon> with SingleTickerProviderStateMixin {
+class _SelectionPopupIconState extends State<SelectionPopupIcon>
+    with SingleTickerProviderStateMixin {
   final selection = ['❤', '😍', '😆', '😂', '😢', '☹'];
-  late final _controller = AnimationController(duration: const Duration(milliseconds: 1000), vsync: this);
+  late final _controller =
+      AnimationController(duration: const Duration(milliseconds: 1000), vsync: this);
 
   @override
   void dispose() {
@@ -636,5 +674,130 @@ class _SelectionPopupIconState extends State<SelectionPopupIcon> with SingleTick
         curve: Interval(index * 0.07, 1, curve: Curves.elasticOut),
       ),
     );
+  }
+}
+
+class AddToCartSuccessBottomSheet extends StatefulWidget {
+  const AddToCartSuccessBottomSheet({Key? key}) : super(key: key);
+
+  @override
+  State<AddToCartSuccessBottomSheet> createState() => _AddToCartSuccessBottomSheetState();
+}
+
+class _AddToCartSuccessBottomSheetState extends State<AddToCartSuccessBottomSheet>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    )..forward();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            S.current.added_to_cart_successfully,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          AnimatedBuilder(
+            animation: _controller,
+            builder: (context, child) {
+              final value = _controller.value;
+              return Transform.scale(
+                scale: min(1, (value - 0.2).abs() / 0.4),
+                child: CustomPaint(
+                  size: const Size(60, 60),
+                  painter: AddToCartSuccessIconPainter((value - 0.4).abs() / 0.6),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 32),
+          ElevatedButton(
+            style: ButtonStyle(
+              shape: WidgetStateProperty.all(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                ),
+              ),
+              padding: WidgetStateProperty.all(
+                const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  S.current.go_to_cart,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
+                ),
+                SizedBox(width: 8),
+                Icon(Icons.arrow_forward_rounded),
+              ],
+            ),
+            onPressed: () {
+              Navigator.pop(context, true);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class AddToCartSuccessIconPainter extends CustomPainter {
+  const AddToCartSuccessIconPainter(this.percent);
+
+  final double percent;
+
+  @override
+  bool shouldRepaint(AddToCartSuccessIconPainter oldDelegate) {
+    return oldDelegate.percent != percent;
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final backgroundPaint = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.fill;
+    final strokePaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 8
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    final path = Path()
+      ..moveTo(15, 30)
+      ..lineTo(25, 40)
+      ..lineTo(45, 20);
+    canvas.drawCircle(const Offset(30, 30), 30, backgroundPaint);
+    canvas.drawPath(createAnimatedPath(path, percent), strokePaint);
   }
 }

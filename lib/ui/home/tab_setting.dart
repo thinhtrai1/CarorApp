@@ -1,11 +1,14 @@
+import 'package:caror/data/data_service.dart';
 import 'package:caror/data/shared_preferences.dart';
-import 'package:caror/generated/l10n.dart';
+import 'package:caror/resources/generated/l10n.dart';
 import 'package:caror/main.dart';
+import 'package:caror/resources/util.dart';
 import 'package:caror/ui/web_view/webview.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 
-import '../../themes/theme.dart';
+import '../../resources/theme.dart';
 import '../../widget/widget.dart';
 import '../login/login.dart';
 import '../profile/profile.dart';
@@ -25,11 +28,38 @@ class _SettingTabState extends State<SettingTab> {
   String _language = getLanguageName(AppPreferences.getLanguageCode());
   HomePageState? _homeState;
   final GlobalKey _languageKey = GlobalKey();
+  final _inAppPurchase = InAppPurchase.instance;
+  ProductDetails? _premium;
 
   @override
   void initState() {
     _homeState = context.findAncestorStateOfType<HomePageState>();
+    _initStoreInfo();
     super.initState();
+  }
+
+  Future<void> _initStoreInfo() async {
+    final bool isAvailable = await _inAppPurchase.isAvailable();
+    if (!isAvailable) {
+      showToast(S.current.in_app_purchase_not_available);
+      return;
+    }
+    final response = await _inAppPurchase.queryProductDetails({
+      'test_premium',
+    });
+    if (response.error != null) {
+      Util.log(response.error.toString(), error: true);
+      showToast(S.current.in_app_purchase_not_available);
+      return;
+    }
+
+    setState(() {
+      _premium = response.productDetails.first;
+    });
+
+    _inAppPurchase.purchaseStream.listen((event) {
+      Util.log('Purchase updated: ${event.map((e) => e.status).toList()}');
+    });
   }
 
   @override
@@ -142,13 +172,32 @@ class _SettingTabState extends State<SettingTab> {
               },
             ),
             _SettingItem(
+              S.current.privacy_and_policy,
+              child: const Icon(Icons.arrow_right_rounded),
+              onPressed: () {
+                Navigator.of(context).push(createRoute(WebViewPage(
+                  url: DataService.getFullUrl('privacy'),
+                )));
+              },
+            ),
+            _SettingItem(
               S.current.information,
               child: const Icon(Icons.arrow_right_rounded),
               onPressed: () {
                 Navigator.of(context).push(createRoute(const WebViewPage()));
               },
             ),
-            const SizedBox(height: 48),
+            if (_premium != null)
+              _SettingItem(
+                S.current.caror_premium,
+                child: const Icon(Icons.star),
+                onPressed: () {
+                  _inAppPurchase.buyNonConsumable(
+                    purchaseParam: PurchaseParam(productDetails: _premium!),
+                  );
+                },
+              ),
+            const SizedBox(height: 40),
             if (_isLoggedIn)
               InkWell(
                 child: Container(
@@ -216,7 +265,7 @@ class _SettingItem extends StatelessWidget {
                 ),
                 const Spacer(),
                 child,
-                const SizedBox(width: 8, height: 50),
+                const SizedBox(width: 8, height: 40),
               ],
             ),
             const Divider(height: 1, color: Color(0xFFAAAAAA)),

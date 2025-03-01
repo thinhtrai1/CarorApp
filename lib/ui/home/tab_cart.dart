@@ -1,13 +1,16 @@
 import 'dart:math';
 
 import 'package:caror/data/data_service.dart';
+import 'package:caror/data/shared_preferences.dart';
 import 'package:caror/entity/product.dart';
-import 'package:caror/generated/l10n.dart';
-import 'package:caror/themes/number.dart';
-import 'package:caror/themes/theme.dart';
+import 'package:caror/resources/generated/l10n.dart';
+import 'package:caror/resources/number.dart';
+import 'package:caror/resources/theme.dart';
+import 'package:caror/resources/util.dart';
 import 'package:caror/widget/shimmer_loading.dart';
 import 'package:caror/widget/widget.dart';
 import 'package:flutter/material.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 
 class CartTab extends StatefulWidget {
   const CartTab({Key? key}) : super(key: key);
@@ -17,36 +20,55 @@ class CartTab extends StatefulWidget {
 }
 
 class _CartTabState extends State<CartTab> {
-  final _products = List<Product>.empty(growable: true);
+  final _ids = AppPreferences.getCart().map(int.parse).toList();
+  final _products = <Product>[];
   final _scrollController = ScrollController();
   final _listKey = GlobalKey<SliverAnimatedListState>();
   var _isInitial = true;
   late final _statusBarHeight = Number.getStatusBarHeight(context);
+  final _inAppPurchase = InAppPurchase.instance;
+  ProductDetails? _productDetails;
 
   @override
   void initState() {
     _getProducts();
+    _initStoreInfo();
     super.initState();
+  }
+
+  Future<void> _initStoreInfo() async {
+    final response = await _inAppPurchase.queryProductDetails({
+      'test_product',
+    });
+    if (response.error != null) {
+      Util.log(response.error.toString(), error: true);
+      return;
+    }
+
+    _productDetails = response.productDetails.first;
+  }
+
+  _getProducts() {
+    if (_ids.isEmpty) {
+      setState(() {
+        _isInitial = false;
+      });
+      return;
+    }
+    DataService.getProductsByIds(0, _ids.toSet().toList()).then((response) {
+      if (response != null) {
+        _products.addAll(response.data.map((e) => e..qty = _ids.where((id) => id == e.id).length));
+      }
+      setState(() {
+        _isInitial = false;
+      });
+    });
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
-  }
-
-  _getProducts() {
-    DataService.getProducts(0).then((response) {
-      if (response != null) {
-        final random = Random();
-        final start = random.nextInt(response.data.length ~/ 2);
-        final end = start + random.nextInt(response.data.length - start);
-        _products.addAll(response.data.sublist(start, end + 1));
-      }
-      setState(() {
-        _isInitial = false;
-      });
-    });
   }
 
   @override
@@ -60,162 +82,201 @@ class _CartTabState extends State<CartTab> {
   }
 
   Widget _buildContent() {
-    final subtotal = _products.isEmpty ? 0 : _products.map((e) => e.price * e.qty).reduce((a, b) => a + b);
+    final subtotal = _products.fold<int>(0, (prev, product) => prev + product.price * product.qty);
     final tax = subtotal * 0.1;
     final shipping = subtotal > 0 ? 75000 : 0;
     final total = subtotal + tax + shipping;
-    return CustomScrollView(
-      controller: _scrollController,
-      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-      slivers: [
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: _statusBarHeight + 32),
-                Text(
-                  S.current.orders_num_item(_products.length),
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return CustomScrollView(
+          controller: _scrollController,
+          physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: _statusBarHeight + 32),
+                    Text(
+                      S.current.orders_num_item(_products.length),
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
-        if (_products.isNotEmpty) _buildCartListView(),
-        SliverToBoxAdapter(
-          child: Container(
-            margin: const EdgeInsets.only(top: 24),
-            padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 80),
-            decoration: const BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.circular(16)),
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: colorShadow,
-                  offset: Offset(0, -8),
-                  blurRadius: 8,
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  S.current.summary,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 20,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Text(
-                      S.current.subtotal,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
+            _products.isEmpty
+                ? SliverToBoxAdapter(
+                    child: Container(
+                      height: constraints.maxHeight - 480,
+                      alignment: Alignment.center,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Image(
+                            width: 100,
+                            height: 100,
+                            image: AssetImage('assets/app_icon.png'),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            S.current.cart_is_empty,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const Spacer(),
-                    Text(
-                      Number.priceFormat(subtotal),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
+                  )
+                : _buildCartListView(),
+            SliverToBoxAdapter(
+              child: Container(
+                margin: const EdgeInsets.only(top: 24),
+                padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 80),
+                decoration: const BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(16)),
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: colorShadow,
+                      offset: Offset(0, -8),
+                      blurRadius: 8,
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      S.current.tax,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      Number.priceFormat(tax),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Text(
-                      S.current.shipping_handling,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      Number.priceFormat(shipping),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Text(
-                      S.current.total,
+                      S.current.summary,
                       style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 20,
                       ),
                     ),
-                    const Spacer(),
-                    Text(
-                      Number.priceFormat(total),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 20,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                Align(
-                  alignment: Alignment.topRight,
-                  child: ElevatedButton(
-                    style: ButtonStyle(
-                      shape: MaterialStateProperty.all(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(28),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Text(
+                          S.current.subtotal,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
                         ),
-                      ),
-                      padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 64, vertical: 12)),
+                        const Spacer(),
+                        Text(
+                          Number.priceFormat(subtotal),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
                     ),
-                    child: Text(
-                      S.current.checkout,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Text(
+                          S.current.tax,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          Number.priceFormat(tax),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Text(
+                          S.current.shipping_handling,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          Number.priceFormat(shipping),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        Text(
+                          S.current.total,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 20,
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          Number.priceFormat(total),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 20,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: ElevatedButton(
+                        style: ButtonStyle(
+                          shape: MaterialStateProperty.all(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(28),
+                            ),
+                          ),
+                          padding: MaterialStateProperty.all(
+                              const EdgeInsets.symmetric(horizontal: 64, vertical: 12)),
+                        ),
+                        child: Text(
+                          S.current.checkout,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        onPressed: () {
+                          if (_productDetails == null) {
+                            showToast(S.current.in_app_purchase_not_available);
+                            return;
+                          }
+                          _inAppPurchase.buyConsumable(
+                            purchaseParam: PurchaseParam(productDetails: _productDetails!),
+                          );
+                        },
                       ),
                     ),
-                    onPressed: () {},
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 
@@ -235,10 +296,11 @@ class _CartTabState extends State<CartTab> {
         _products.removeAt(index);
         _listKey.currentState!.removeItem(index, (_, animation) => const SizedBox());
         setState(() {});
+        AppPreferences.addToCart(product.id, -product.qty);
       },
       key: Key(product.id.toString()),
-      background: Row(
-        children: const [
+      background: const Row(
+        children: [
           SizedBox(width: 40),
           Icon(Icons.arrow_forward_rounded),
           Icon(Icons.delete_rounded),
@@ -308,6 +370,7 @@ class _CartTabState extends State<CartTab> {
                           duration: const Duration(milliseconds: 200),
                         );
                         setState(() {});
+                        AppPreferences.addToCart(product.id, -product.qty);
                       }),
                     ],
                   ),
@@ -324,9 +387,14 @@ class _CartTabState extends State<CartTab> {
                         ),
                       ),
                       const Spacer(),
-                      MaterialIconButton(Icons.remove_circle_outline_rounded, padding: 8, onPressed: () {
-                        if (product.qty > 0) setState(() => product.qty -= 1);
-                      }),
+                      MaterialIconButton(
+                        Icons.remove_circle_outline_rounded,
+                        padding: 8,
+                        onPressed: () {
+                          AppPreferences.addToCart(product.id, -1);
+                          if (product.qty > 0) setState(() => product.qty -= 1);
+                        },
+                      ),
                       Text(
                         product.qty.toString(),
                         maxLines: 1,
@@ -338,7 +406,10 @@ class _CartTabState extends State<CartTab> {
                       MaterialIconButton(
                         Icons.add_circle_outline_rounded,
                         padding: 8,
-                        onPressed: () => setState(() => product.qty += 1),
+                        onPressed: () {
+                          AppPreferences.addToCart(product.id, 1);
+                          setState(() => product.qty += 1);
+                        },
                       ),
                     ],
                   )
@@ -368,7 +439,7 @@ class _CartTabState extends State<CartTab> {
               ),
             ),
             const SizedBox(height: 16),
-            ...List.generate(3, (index) => _buildShimmerItem()),
+            ...List.generate(_ids.toSet().length, (index) => _buildShimmerItem()),
             const SizedBox(height: 48),
             Container(
               width: 160,

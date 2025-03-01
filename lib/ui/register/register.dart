@@ -1,12 +1,12 @@
 import 'dart:convert';
 
-import 'package:caror/generated/l10n.dart';
-import 'package:caror/themes/util.dart';
+import 'package:caror/resources/generated/l10n.dart';
+import 'package:caror/resources/util.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/data_service.dart';
 import '../../data/shared_preferences.dart';
-import '../../themes/theme.dart';
+import '../../resources/theme.dart';
 import '../../widget/widget.dart';
 import '../home/home.dart';
 
@@ -144,7 +144,7 @@ class _RegisterPagePageState extends State<RegisterPage> {
     } else if (_emailController.text.trim().isEmpty) {
       showToast(S.current.please_enter_email);
       return;
-    } else if (!isValidEmail(_emailController.text.trim())) {
+    } else if (!Util.isValidEmail(_emailController.text.trim())) {
       showToast(S.current.please_enter_valid_email);
       return;
     } else if (_firstnameController.text.trim().isEmpty) {

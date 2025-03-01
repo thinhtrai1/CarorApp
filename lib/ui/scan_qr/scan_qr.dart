@@ -1,12 +1,14 @@
 import 'dart:convert';
 
 import 'package:caror/data/data_service.dart';
-import 'package:caror/generated/l10n.dart';
-import 'package:caror/themes/number.dart';
-import 'package:caror/themes/theme.dart';
+import 'package:caror/resources/generated/l10n.dart';
+import 'package:caror/resources/number.dart';
+import 'package:caror/resources/theme.dart';
+import 'package:caror/resources/util.dart';
 import 'package:caror/ui/product_detail/product_detail.dart';
 import 'package:caror/widget/widget.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:encrypt/encrypt.dart' as e;
 
@@ -38,11 +40,10 @@ class _ScanQRPageState extends State<ScanQRPage> {
             top: 0,
             bottom: 0,
             child: MobileScanner(
-              allowDuplicates: false,
               controller: _cameraController,
-              fit: BoxFit.none,
-              onDetect: (barcode, args) {
-                _decrypt(barcode.rawValue);
+              fit: BoxFit.cover,
+              onDetect: (barcode) {
+                _decrypt(barcode.barcodes.first.rawValue);
               },
             ),
           ),
@@ -86,9 +87,7 @@ class _ScanQRPageState extends State<ScanQRPage> {
               color: Colors.white,
               backgroundColor: const Color(0x4DFFFFFF),
               onPressed: () {
-                if (_cameraController.hasTorch) {
                   _cameraController.toggleTorch();
-                }
               },
             ),
           ),
@@ -101,12 +100,30 @@ class _ScanQRPageState extends State<ScanQRPage> {
               Icons.photo_library_rounded,
               color: Colors.white,
               backgroundColor: const Color(0x4DFFFFFF),
-              onPressed: () {},
+              onPressed: () {
+                _selectPhoto();
+              },
             ),
           ),
         ],
       ),
     );
+  }
+
+  _selectPhoto() async {
+    try {
+      final file = await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (!mounted || file == null) {
+        return;
+      }
+
+      final barcodeCapture = await _cameraController.analyzeImage(file.path);
+      if (mounted) {
+        _decrypt(barcodeCapture?.barcodes.first.rawValue);
+      }
+    } catch (e) {
+      Util.log('Select photo error: $e', error: true);
+    }
   }
 
   _decrypt(String? json) {
@@ -115,14 +132,17 @@ class _ScanQRPageState extends State<ScanQRPage> {
         final inputs = jsonDecode(json);
         final input = inputs['id'];
         if (input != null) {
+          _cameraController.pause();
           final key = e.Key.fromUtf8(App.ask);
-          final iv = e.IV.fromLength(16);
+          final iv = e.IV.fromBase64(inputs['iv']);
           final encrypter = e.Encrypter(e.AES(key));
           final productId = encrypter.decrypt(e.Encrypted.fromBase64(input), iv: iv);
           _getProducts(productId);
           return;
         }
-      } on FormatException catch (_) {}
+      } on FormatException catch (e) {
+        Util.log('Decrypt QR Code: $e', error: true);
+      }
     }
     showToast(S.current.data_error);
     Navigator.pop(context);
@@ -130,11 +150,11 @@ class _ScanQRPageState extends State<ScanQRPage> {
 
   _getProducts(String id) {
     showLoading(context, message: S.current.loading_data);
-    DataService.getProductDetail(id).then((response) {
+    DataService.getProductDetail(id).then((data) {
       Navigator.pop(context);
-      if (response?.data != null) {
+      if (data != null) {
         Navigator.pop(context);
-        Navigator.of(context).push(createRoute(ProductDetailPage(response!.data!)));
+        Navigator.of(context).push(createRoute(ProductDetailPage(data)));
       }
     });
   }

@@ -9,9 +9,9 @@ import 'package:caror/entity/people.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/data_service.dart';
-import '../../generated/l10n.dart';
-import '../../themes/number.dart';
-import '../../themes/theme.dart';
+import '../../resources/generated/l10n.dart';
+import '../../resources/number.dart';
+import '../../resources/theme.dart';
 import '../../widget/widget.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -284,7 +284,7 @@ class _SuggestionListViewState extends State<_SuggestionListView> {
     DataService.getPeoples().then((response) {
       if (response != null) {
         setState(() {
-          _peoples = response.data;
+          _peoples = response;
           Future.delayed(const Duration(milliseconds: 300), () {
             setState(() {
               isVisible = true;

@@ -1,8 +1,8 @@
 import 'package:caror/data/data_service.dart';
 import 'package:caror/entity/people.dart';
-import 'package:caror/generated/l10n.dart';
-import 'package:caror/themes/number.dart';
-import 'package:caror/themes/theme.dart';
+import 'package:caror/resources/generated/l10n.dart';
+import 'package:caror/resources/number.dart';
+import 'package:caror/resources/theme.dart';
 import 'package:caror/ui/chat/chat.dart';
 import 'package:caror/ui/home/home.dart';
 import 'package:caror/ui/login/login.dart';
@@ -23,6 +23,7 @@ class _ChatTabState extends State<ChatTab> {
   LoginState? _loginState;
   late final _statusBarHeight = Number.getStatusBarHeight(context);
   List<People>? _peoples;
+  List<People>? _filteredPeoples;
 
   @override
   initState() {
@@ -38,7 +39,8 @@ class _ChatTabState extends State<ChatTab> {
     DataService.getPeoples().then((response) {
       if (response != null) {
         setState(() {
-          _peoples = response.data;
+          _peoples = response;
+          _filteredPeoples = List.from(response);
         });
       }
     });
@@ -88,6 +90,16 @@ class _ChatTabState extends State<ChatTab> {
                         hintText: S.current.search_name_phone_number,
                       ),
                       style: const TextStyle(fontFamily: "Montserrat"),
+                      onChanged: (value) {
+                        setState(() {
+                          _filteredPeoples = _peoples?.where((element) {
+                            return element.fullName.toLowerCase().contains(value.toLowerCase()) ||
+                                element.email.toLowerCase().contains(value.toLowerCase()) ||
+                                element.username.toLowerCase().contains(value.toLowerCase()) ||
+                                element.phone.toLowerCase().contains(value.toLowerCase());
+                          }).toList();
+                        });
+                      },
                     ),
                   ),
                   MaterialIconButton(Icons.search_rounded, padding: 16, onPressed: () {}),
@@ -151,7 +163,7 @@ class _ChatTabState extends State<ChatTab> {
                     children: [
                       const SizedBox(width: 16),
                       Text(
-                        S.current.contacts_number(_peoples!.length),
+                        S.current.contacts_number(_filteredPeoples!.length),
                         style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
                       ),
                       const Spacer(),
@@ -170,12 +182,12 @@ class _ChatTabState extends State<ChatTab> {
     );
   }
 
-  int _getItemCount() => _peoples?.length ?? shimmerItemCount;
+  int _getItemCount() => _filteredPeoples?.length ?? shimmerItemCount;
 
-  bool _isShimmerIndex() => _peoples == null;
+  bool _isShimmerIndex() => _filteredPeoples == null;
 
   Widget _buildHorizontalListView(bool activeIcon) {
-    final peoples = _peoples?.toList()?..shuffle();
+    final peoples = _filteredPeoples?.toList()?..shuffle();
     return SizedBox(
       height: 64,
       child: ListView.separated(
@@ -198,10 +210,12 @@ class _ChatTabState extends State<ChatTab> {
       shrinkWrap: true,
       itemCount: _getItemCount(),
       itemBuilder: (context, index) {
-        final people = _peoples?[index];
+        final people = _filteredPeoples?[index];
         return Padding(
           padding: const EdgeInsets.only(left: 16, right: 16, top: 12),
-          child: people == null ? _VerticalShimmerItem() : _VerticalItem(index: index,people: _peoples![index]),
+          child: people == null
+              ? _VerticalShimmerItem()
+              : _VerticalItem(index: index, people: _filteredPeoples![index]),
         );
       },
     );
@@ -221,20 +235,29 @@ class _ChatTabState extends State<ChatTab> {
   }
 
   Widget _buildLoginButton() {
-    return Center(
-      child: ElevatedButton(
-        style: ButtonStyle(
-          shape: MaterialStateProperty.all(
-            RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(24),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Image(
+          width: 100,
+          height: 100,
+          image: AssetImage('assets/app_icon.png'),
+        ),
+        const SizedBox(height: 16),
+        ElevatedButton(
+          style: ButtonStyle(
+            shape: MaterialStateProperty.all(
+              RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
             ),
           ),
+          onPressed: () {
+            Navigator.of(context).push(createRoute(const LoginPage()));
+          },
+          child: Text(S.current.login_and_enjoy_now),
         ),
-        onPressed: () {
-          Navigator.of(context).push(createRoute(const LoginPage()));
-        },
-        child: Text(S.current.login_and_enjoy_now),
-      ),
+      ],
     );
   }
 }
@@ -254,7 +277,8 @@ class _HorizontalItem extends StatelessWidget {
           child: CircleAvatar(
             radius: 32,
             backgroundColor: colorShimmer,
-            backgroundImage: people == null ? null : NetworkImage(DataService.getFullUrl(people!.avatar)),
+            backgroundImage:
+                people == null ? null : NetworkImage(DataService.getFullUrl(people!.avatar)),
           ),
         ),
         if (people != null && activeIcon)

@@ -1,35 +1,41 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:caror/data/shared_preferences.dart';
-import 'package:caror/entity/login_response.dart';
-import 'package:caror/entity/product_list_response.dart';
-import 'package:caror/entity/product_response.dart';
+import 'package:caror/entity/people.dart';
+import 'package:caror/entity/product.dart';
+import 'package:caror/entity/common_list_response.dart';
 import 'package:caror/entity/user.dart';
-import 'package:caror/entity/people_list_response.dart';
-import 'package:caror/generated/l10n.dart';
-import 'package:caror/themes/theme.dart';
+import 'package:caror/resources/generated/l10n.dart';
+import 'package:caror/resources/theme.dart';
+import 'package:caror/resources/util.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 class DataService {
+  const DataService._();
+
   static String baseUrl = 'https://nguyenducthinh-springboot.appspot.com/';
 
   static String getFullUrl(String path) => '$baseUrl$path';
 
-  static _getApiUrl(String path) => Uri.parse('${baseUrl}api/$path');
+  static Uri _getApiUrl(String path) => Uri.parse('${baseUrl}api/$path');
+
+  static String _pretty(dynamic json) {
+    return const JsonEncoder.withIndent('    ').convert(json);
+  }
 
   static Future<T?> _getResponse<T>({
     required String path,
     bool post = false,
     bool formUrlencoded = false,
     Object? body,
-    T? Function(Map<String, dynamic>)? converter,
+    Map<String, dynamic>? queryParameters,
+    T Function(dynamic)? converter,
   }) async {
     String message;
-    final url = _getApiUrl(path);
+    final url = _getApiUrl(path).replace(queryParameters: queryParameters);
 
     try {
       final accessToken = AppPreferences.getAccessToken();
@@ -43,19 +49,22 @@ class DataService {
           ? await http.post(url, headers: headers, body: body)
           : await http.get(url, headers: headers);
       if (kDebugMode) {
-        final b = !post || body == null ? '' : '\n${_pretty(body)}';
-        _log('Request ${post ? 'POST' : 'GET'}: $url$b');
+        final b = body == null ? '' : '\n${_pretty(body)}';
+        Util.log('Request ${post ? 'POST' : 'GET'}: $url$b');
       }
       if (response.statusCode >= 200 && response.statusCode < 300) {
         final data = jsonDecode(utf8.decode(response.bodyBytes));
         if (kDebugMode) {
-          _log('======> ${response.statusCode}:\n${_pretty(data)}');
+          Util.log('======> ${response.statusCode}:\n${_pretty(data)}');
         }
-        return converter?.call(data);
+        return converter?.call(data['data']);
       } else {
         if (kDebugMode) {
           final data = jsonDecode(utf8.decode(response.bodyBytes));
-          _log('======> Error: ${response.statusCode} ${response.reasonPhrase}:\n${_pretty(data)}');
+          Util.log(
+            '======> Error: ${response.statusCode} ${response.reasonPhrase}:\n${_pretty(data)}',
+            error: true,
+          );
         }
         if (response.statusCode > 499 && response.statusCode < 512) {
           message = S.current.server_error;
@@ -66,8 +75,8 @@ class DataService {
     } catch (e) {
       if (kDebugMode) {
         final b = !post || body == null ? '' : '\n${_pretty(body)}';
-        _log('Request ${post ? 'POST' : 'GET'}: $url$b');
-        _log('======> Error: $e');
+        Util.log('Request ${post ? 'POST' : 'GET'}: $url$b');
+        Util.log('======> Error: $e', error: true);
       }
       if (e is SocketException || e is TimeoutException) {
         message = S.current.network_error;
@@ -79,12 +88,22 @@ class DataService {
     return null;
   }
 
-  static _log(String message) {
-    log(message);
-  }
-
-  static String _pretty(dynamic json) {
-    return const JsonEncoder.withIndent('    ').convert(json);
+  static Future<CommonListResponse<T>?> _getResponseList<T>({
+    required String path,
+    bool post = false,
+    bool formUrlencoded = false,
+    Object? body,
+    Map<String, dynamic>? queryParameters,
+    required T Function(dynamic) converter,
+  }) {
+    return _getResponse(
+      path: path,
+      post: post,
+      formUrlencoded: formUrlencoded,
+      body: body,
+      queryParameters: queryParameters,
+      converter: (p0) => CommonListResponse.fromJson(p0, converter),
+    );
   }
 
   static Future<User?> login(String username, String password) async {
@@ -96,9 +115,9 @@ class DataService {
         'username': username,
         'password': password,
       },
-      converter: LoginResponse.fromJson,
+      converter: User.fromJson,
     );
-    return response?.data;
+    return response;
   }
 
   static Future<User?> register(
@@ -119,31 +138,40 @@ class DataService {
         'firstname': firstname,
         'lastname': lastname,
       },
-      converter: LoginResponse.fromJson,
-    );
-    return response?.data;
-  }
-
-  static Future<ProductListResponse?> getProducts(int page) async {
-    final response = await _getResponse(
-      path: 'product/$page',
-      converter: ProductListResponse.fromJson,
+      converter: User.fromJson,
     );
     return response;
   }
 
-  static Future<ProductResponse?> getProductDetail(String id) async {
+  static Future<CommonListResponse<Product>?> getProducts(int page) async {
+    final response = await _getResponseList(
+      path: 'product/$page',
+      converter: Product.fromJson,
+    );
+    return response;
+  }
+
+  static Future<CommonListResponse<Product>?> getProductsByIds(int page, List<int> ids) async {
+    final response = await _getResponseList(
+      path: 'product/$page',
+      queryParameters: {'ids': ids.join(',')},
+      converter: Product.fromJson,
+    );
+    return response;
+  }
+
+  static Future<Product?> getProductDetail(String id) async {
     final response = await _getResponse(
       path: 'product?id=$id',
-      converter: ProductResponse.fromJson,
+      converter: Product.fromJson,
     );
     return response;
   }
 
-  static Future<PeopleListResponse?> getPeoples() async {
+  static Future<List<People>?> getPeoples() async {
     final response = await _getResponse(
       path: 'peoples',
-      converter: PeopleListResponse.fromJson,
+      converter: (p0) => (p0 as List).map(People.fromJson).toList(),
     );
     return response;
   }

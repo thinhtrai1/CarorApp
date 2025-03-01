@@ -1,12 +1,12 @@
 import 'dart:convert';
 
-import 'package:caror/generated/l10n.dart';
+import 'package:caror/resources/generated/l10n.dart';
 import 'package:caror/ui/register/register.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/data_service.dart';
 import '../../data/shared_preferences.dart';
-import '../../themes/theme.dart';
+import '../../resources/theme.dart';
 import '../../widget/widget.dart';
 import '../home/home.dart';
 

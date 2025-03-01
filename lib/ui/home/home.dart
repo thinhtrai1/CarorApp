@@ -3,7 +3,8 @@ import 'dart:convert';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:caror/data/data_service.dart';
 import 'package:caror/data/shared_preferences.dart';
-import 'package:caror/generated/l10n.dart';
+import 'package:caror/resources/generated/l10n.dart';
+import 'package:caror/resources/util.dart';
 import 'package:caror/ui/home/tab_cart.dart';
 import 'package:caror/ui/home/tab_chat.dart';
 import 'package:caror/ui/home/tab_universe.dart';
@@ -36,13 +37,22 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin 
     isSound = value ?? !isSound;
     if (isSound) {
       if (_audioPlayer == null) {
-        _audioPlayer = await AudioCache().loop('background_sound.mp3');
+        _audioPlayer = AudioPlayer()..setReleaseMode(ReleaseMode.loop);
+        await _audioPlayer?.setSourceAsset('background_sound.mp3');
+        _audioPlayer?.resume();
       } else {
-        _audioPlayer!.resume();
+        _audioPlayer?.resume();
       }
     } else {
       _audioPlayer?.pause();
     }
+  }
+
+  animateToTab(int index) async {
+    Util.log('HomePage animateToTab $index');
+    await Future.delayed(const Duration(milliseconds: 200), () {
+      _tabController.animateTo(index);
+    });
   }
 
   @override
@@ -127,7 +137,8 @@ class _BottomBarState extends State<_BottomBar> with SingleTickerProviderStateMi
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(duration: const Duration(milliseconds: 200), vsync: this);
+    _animationController =
+        AnimationController(duration: const Duration(milliseconds: 200), vsync: this);
     _iconAnimation = Tween<double>(begin: 0, end: 0.1).animate(_animationController);
   }
 
@@ -323,8 +334,7 @@ class BottomTabMiddleItem extends StatelessWidget {
 class _BottomBarPaint extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final shadowPath = _createMainPath(Path()..moveTo(0, 10), size)
-      ..lineTo(size.width, 10);
+    final shadowPath = _createMainPath(Path()..moveTo(0, 10), size)..lineTo(size.width, 10);
     final shadowPaint = Paint()
       ..color = const Color(0x33000000)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);

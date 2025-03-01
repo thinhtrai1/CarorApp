@@ -1,14 +1,15 @@
 import 'dart:math';
 
-import 'package:caror/generated/l10n.dart';
+import 'package:caror/resources/generated/l10n.dart';
 import 'package:caror/ui/image/image.dart';
 import 'package:caror/ui/product_detail/product_detail.dart';
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../data/data_service.dart';
 import '../../entity/product.dart';
-import '../../themes/number.dart';
-import '../../themes/theme.dart';
+import '../../resources/number.dart';
+import '../../resources/theme.dart';
 import '../../widget/shimmer_loading.dart';
 import '../../widget/widget.dart';
 
@@ -26,8 +27,8 @@ class _UniverseTabState extends State<UniverseTab> with SingleTickerProviderStat
   late final _statusBarHeight = Number.getStatusBarHeight(context);
   final _products = List<Product>.empty(growable: true);
   final _shortController = ScrollController();
-  late final _refreshIconController = AnimationController(duration: const Duration(milliseconds: 500), vsync: this)
-    ..repeat();
+  late final _refreshIconController =
+      AnimationController(duration: const Duration(milliseconds: 500), vsync: this)..repeat();
 
   @override
   Widget build(BuildContext context) {
@@ -41,8 +42,8 @@ class _UniverseTabState extends State<UniverseTab> with SingleTickerProviderStat
             sliver: _isInitial
                 ? null
                 : CommonSliverRefreshControl(_refreshIconController, onRefresh: () async {
-              _getProducts(true);
-            }),
+                    _getProducts(true);
+                  }),
           ),
           SliverToBoxAdapter(
             child: Column(
@@ -152,9 +153,7 @@ class _UniverseTabState extends State<UniverseTab> with SingleTickerProviderStat
                 borderRadius: BorderRadius.all(Radius.circular(16)),
                 color: colorShimmer,
               ),
-              child: _isShimmerIndex(index)
-                  ? null
-                  : _ShortItem(product: _products[index]),
+              child: _isShimmerIndex(index) ? null : _ShortItem(product: _products[index]),
             ),
           );
         },
@@ -165,7 +164,7 @@ class _UniverseTabState extends State<UniverseTab> with SingleTickerProviderStat
   Widget _buildPostsListView() {
     return SliverList(
       delegate: SliverChildBuilderDelegate(
-            (context, index) {
+        (context, index) {
           return _isShimmerIndex(index) ? _ShimmerItem() : _PostsItem(product: _products[index]);
         },
         childCount: _isInitial ? shimmerItemCount : _products.length,
@@ -356,7 +355,7 @@ class _PostsItem extends StatelessWidget {
     final random = Random();
     return Container(
       margin: const EdgeInsets.only(top: 16, left: 16, right: 16),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
       decoration: const BoxDecoration(
         borderRadius: BorderRadius.all(Radius.circular(16)),
         color: Colors.white,
@@ -422,7 +421,7 @@ class _PostsItem extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           _ContentImage(product: product),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
           Row(
             children: [
               const SelectionPopupIcon(Icons.thumb_up_alt_rounded, padding: 8),
@@ -433,8 +432,10 @@ class _PostsItem extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              const Icon(Icons.comment_rounded),
-              const SizedBox(width: 8),
+              const MaterialIconButton(
+                Icons.comment_rounded,
+                padding: 8,
+              ),
               Text(
                 S.current.comments(random.nextInt(1000)),
                 style: const TextStyle(
@@ -442,8 +443,14 @@ class _PostsItem extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              const Icon(Icons.share_rounded),
-              const SizedBox(width: 8),
+              MaterialIconButton(
+                Icons.share_rounded,
+                padding: 8,
+                onPressed: () {
+                  Share.share(
+                      '${product.name}\n\n${product.description}\n\n${S.current.visit_caror_to_enjoy_now}');
+                },
+              ),
               Text(
                 S.current.share,
                 style: const TextStyle(
@@ -451,7 +458,8 @@ class _PostsItem extends StatelessWidget {
                 ),
               ),
             ],
-          )
+          ),
+          const SizedBox(height: 8),
         ],
       ),
     );

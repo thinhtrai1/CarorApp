@@ -1,13 +1,14 @@
 import 'dart:math';
 import 'dart:typed_data';
+import 'dart:ui';
 
 import 'package:caror/data/data_service.dart';
-import 'package:caror/generated/l10n.dart';
-import 'package:caror/themes/theme.dart';
+import 'package:caror/resources/generated/l10n.dart';
+import 'package:caror/resources/theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import '../themes/number.dart';
+import '../resources/number.dart';
 
 class CommonWidget {
   static Image image(
@@ -80,8 +81,11 @@ class MaterialIconButton extends StatelessWidget {
 }
 
 class CommonSliverRefreshControl extends CupertinoSliverRefreshControl {
-  CommonSliverRefreshControl(AnimationController animationIconController, {Key? key, Future<void> Function()? onRefresh})
-      : super(
+  CommonSliverRefreshControl(
+    AnimationController animationIconController, {
+    Key? key,
+    Future<void> Function()? onRefresh,
+  }) : super(
           key: key,
           onRefresh: () async {
             onRefresh?.call();
@@ -103,8 +107,10 @@ class CommonSliverRefreshControl extends CupertinoSliverRefreshControl {
                             SizedBox(height: max(0, pulledExtent / 5 - 7)),
                             AnimatedSwitcher(
                               duration: const Duration(milliseconds: 300),
-                              transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
-                              child: const Icon(Icons.arrow_circle_down_rounded, key: ValueKey('icon1')),
+                              transitionBuilder: (child, anim) =>
+                                  ScaleTransition(scale: anim, child: child),
+                              child: const Icon(Icons.arrow_circle_down_rounded,
+                                  key: ValueKey('icon1')),
                             ),
                           ],
                         )
@@ -114,7 +120,8 @@ class CommonSliverRefreshControl extends CupertinoSliverRefreshControl {
                             SizedBox(height: max(0, pulledExtent / 5 - 7)),
                             AnimatedSwitcher(
                               duration: const Duration(milliseconds: 300),
-                              transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
+                              transitionBuilder: (child, anim) =>
+                                  ScaleTransition(scale: anim, child: child),
                               child: AnimatedBuilder(
                                 animation: animationIconController,
                                 builder: (_, child) {
@@ -240,6 +247,37 @@ class LoginTextFieldBackground extends Container {
                 style: const TextStyle(fontFamily: "Montserrat"),
               ),
         );
+}
+
+extension CustomPainterExt on CustomPainter {
+  Path createAnimatedPath(
+    Path originalPath,
+    double animationPercent,
+  ) {
+    final totalLength = originalPath
+        .computeMetrics()
+        .fold(0.0, (double prev, PathMetric metric) => prev + metric.length);
+    final length = totalLength * animationPercent;
+    var currentLength = 0.0;
+    final path = Path();
+    var metricsIterator = originalPath.computeMetrics().iterator;
+    while (metricsIterator.moveNext()) {
+      var metric = metricsIterator.current;
+      var nextLength = currentLength + metric.length;
+      final isLastSegment = nextLength > length;
+      if (isLastSegment) {
+        final remainingLength = length - currentLength;
+        final pathSegment = metric.extractPath(0.0, remainingLength);
+        path.addPath(pathSegment, Offset.zero);
+        break;
+      } else {
+        final pathSegment = metric.extractPath(0.0, metric.length);
+        path.addPath(pathSegment, Offset.zero);
+      }
+      currentLength = nextLength;
+    }
+    return path;
+  }
 }
 
 final kTransparentImage = Uint8List.fromList([

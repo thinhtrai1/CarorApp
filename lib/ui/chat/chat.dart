@@ -1,8 +1,8 @@
 import 'dart:math';
 
 import 'package:caror/data/data_service.dart';
-import 'package:caror/generated/l10n.dart';
-import 'package:caror/themes/theme.dart';
+import 'package:caror/resources/generated/l10n.dart';
+import 'package:caror/resources/theme.dart';
 import 'package:caror/widget/widget.dart';
 import 'package:flutter/material.dart';
 

@@ -3,9 +3,10 @@ import 'dart:math';
 import 'package:animations/animations.dart';
 import 'package:caror/data/data_service.dart';
 import 'package:caror/entity/product.dart';
-import 'package:caror/generated/l10n.dart';
-import 'package:caror/themes/theme.dart';
-import 'package:caror/themes/number.dart';
+import 'package:caror/resources/generated/l10n.dart';
+import 'package:caror/resources/theme.dart';
+import 'package:caror/resources/number.dart';
+import 'package:caror/ui/home/home.dart';
 import 'package:caror/ui/product_detail/product_detail.dart';
 import 'package:caror/widget/parallax.dart';
 import 'package:caror/widget/shimmer_loading.dart';
@@ -16,24 +17,30 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../../widget/widget.dart';
 
 _goToProductDetail(BuildContext context, {required Product product, Object? heroTag}) {
-  Navigator.of(context).push(createRoute(ProductDetailPage(product, heroTag: heroTag)));
+  Navigator.push(context, createRoute(ProductDetailPage(product, heroTag: heroTag))).then((value) {
+    if (value == ProductDetailPage.resultCart) {
+      HomePageState.of(context)?.animateToTab(2);
+    }
+  });
 }
 
 class HomeTab extends StatefulWidget {
   const HomeTab({Key? key}) : super(key: key);
 
   @override
-  State<HomeTab> createState() => _HomeTabState();
+  State<HomeTab> createState() => HomeTabState();
 }
 
-class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin, AutomaticKeepAliveClientMixin<HomeTab> {
+class HomeTabState extends State<HomeTab>
+    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin<HomeTab> {
   var _isInitial = true;
   var _currentPage = 0;
   var _isLoadMore = false;
   final _products = List<Product>.empty(growable: true);
   final _scrollController = ScrollController();
   late final _tabController = TabController(length: 5, vsync: this);
-  late final _refreshIconController = AnimationController(duration: const Duration(milliseconds: 500), vsync: this)..repeat();
+  late final _refreshIconController =
+      AnimationController(duration: const Duration(milliseconds: 500), vsync: this)..repeat();
   List<Product>? _favourites;
 
   @override
@@ -164,7 +171,9 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin, Automa
     return SliverList(
       delegate: SliverChildBuilderDelegate(
         (context, index) {
-          return _isShimmerIndex(index) ? const ShimmerLoading(child: _ProductShimmerItem()) : _RecentItem(_products[index], offsetY: 0);
+          return _isShimmerIndex(index)
+              ? const ShimmerLoading(child: _ProductShimmerItem())
+              : _RecentItem(_products[index], offsetY: 0);
         },
         childCount: _getItemCount(),
       ),
@@ -175,7 +184,9 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin, Automa
     return SliverList(
       delegate: SliverChildBuilderDelegate(
         (context, index) {
-          return _isShimmerIndex(index) ? const ShimmerLoading(child: _TrendingShimmerItem(marginHorizontal: 16)) : _TrendingItem(_products[index]);
+          return _isShimmerIndex(index)
+              ? const ShimmerLoading(child: _TrendingShimmerItem(marginHorizontal: 16))
+              : _TrendingItem(_products[index]);
         },
         childCount: _getItemCount(),
       ),
@@ -192,7 +203,9 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin, Automa
         staggeredTileBuilder: (i) => const StaggeredTile.fit(1),
         itemCount: _getItemCount(),
         itemBuilder: (context, index) {
-          return _isShimmerIndex(index) ? const ShimmerLoading(child: _TrendingShimmerItem()) : _NewItem(_products[index]);
+          return _isShimmerIndex(index)
+              ? const ShimmerLoading(child: _TrendingShimmerItem())
+              : _NewItem(_products[index]);
         },
       ),
     );
@@ -202,7 +215,9 @@ class _HomeTabState extends State<HomeTab> with TickerProviderStateMixin, Automa
     return SliverList(
       delegate: SliverChildBuilderDelegate(
         (context, index) {
-          return _isShimmerIndex(index) ? const ShimmerLoading(child: _ProductShimmerItem()) : _RecentItem(_products[index]);
+          return _isShimmerIndex(index)
+              ? const ShimmerLoading(child: _ProductShimmerItem())
+              : _RecentItem(_products[index]);
         },
         childCount: _getItemCount(),
       ),
@@ -256,7 +271,8 @@ class HomeContentView extends StatelessWidget {
 }
 
 class _ListViewFeature extends StatefulWidget {
-  const _ListViewFeature(this._products, {Key? key, required this.isShimmerIndex}) : super(key: key);
+  const _ListViewFeature(this._products, {Key? key, required this.isShimmerIndex})
+      : super(key: key);
 
   final List<Product> _products;
   final bool Function(int) isShimmerIndex;
@@ -282,7 +298,8 @@ class _ListViewFeatureState extends State<_ListViewFeature> {
                 _currentPage = position;
               },
               itemBuilder: (context, index) {
-                if (widget._products.isEmpty || widget.isShimmerIndex(index % widget._products.length)) {
+                if (widget._products.isEmpty ||
+                    widget.isShimmerIndex(index % widget._products.length)) {
                   return ShimmerLoading(
                     child: Container(
                       margin: const EdgeInsets.all(8),
@@ -371,7 +388,7 @@ class _FeatureItem1 extends StatelessWidget {
   Widget _buildParallaxBackground(BuildContext context) {
     return Flow(
       delegate: ParallaxFlowHorizontalDelegate(
-        scrollable: Scrollable.of(context)!,
+        scrollable: Scrollable.of(context),
         listItemContext: context,
         backgroundImageKey: _backgroundImageKey,
         customTranslateY: 0.1,
@@ -581,7 +598,8 @@ class _ListViewFavouritesState extends State<_ListViewFavourites> {
     if (widget.favourites == null) {
       return SliverList(
         delegate: SliverChildListDelegate(
-          List.generate(shimmerItemCount, (index) => const ShimmerLoading(child: _ProductShimmerItem())),
+          List.generate(
+              shimmerItemCount, (index) => const ShimmerLoading(child: _ProductShimmerItem())),
         ),
       );
     } else {
@@ -688,7 +706,8 @@ class _FavouriteItemState extends State<_FavouriteItem> {
               turns: widget.expandedPosition == widget.index ? 0.5 : 0,
               duration: const Duration(milliseconds: 300),
               child: MaterialIconButton(Icons.expand_more_rounded, padding: 12, onPressed: () {
-                widget.onChangeExpanded(widget.expandedPosition == widget.index ? -1 : widget.index);
+                widget
+                    .onChangeExpanded(widget.expandedPosition == widget.index ? -1 : widget.index);
                 widget.onExpanded();
               }),
             ),
@@ -731,7 +750,7 @@ class _TrendingItem extends StatelessWidget {
         tag: product.id,
         child: Flow(
           delegate: ParallaxFlowVerticalDelegate(
-            scrollable: Scrollable.of(context)!,
+            scrollable: Scrollable.of(context),
             listItemContext: context,
             backgroundImageKey: _backgroundImageKey,
           ),
@@ -814,11 +833,16 @@ class _RecentItem extends StatelessWidget {
           ),
         ],
       ),
-      child: OpenContainer(
+      child: OpenContainer<String>(
         openElevation: 0,
         openBuilder: (context, closedContainer) => ProductDetailPage(product),
         closedElevation: 0,
-        closedShape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
+        closedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        onClosed: (data) {
+          if (data == ProductDetailPage.resultCart) {
+            HomePageState.of(context)?.animateToTab(2);
+          }
+        },
         closedBuilder: (context, openContainer) {
           return GestureDetector(
             onTap: openContainer,
@@ -831,7 +855,8 @@ class _RecentItem extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     ClipRRect(
-                      borderRadius: const BorderRadius.only(topLeft: Radius.circular(16), bottomLeft: Radius.circular(16)),
+                      borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(16), bottomLeft: Radius.circular(16)),
                       child: CommonWidget.image(
                         product.thumbnail,
                         fit: BoxFit.cover,

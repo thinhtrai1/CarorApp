@@ -1,11 +1,11 @@
 import 'package:caror/data/shared_preferences.dart';
-import 'package:caror/themes/theme.dart';
+import 'package:caror/resources/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 
-import 'generated/l10n.dart';
+import 'resources/generated/l10n.dart';
 import 'ui/home/home.dart';
 
 void main() async {
@@ -70,6 +70,10 @@ class MyAppState extends State<MyApp> {
             backgroundColor: Colors.black,
             foregroundColor: Colors.white,
           ),
+        ),
+        bottomSheetTheme: const BottomSheetThemeData(
+          surfaceTintColor: Colors.white,
+          backgroundColor: Colors.transparent,
         ),
       ),
       home: const HomePage(),

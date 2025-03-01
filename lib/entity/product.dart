@@ -9,7 +9,7 @@ class Product {
   final int shopId;
   final String shopName;
   final int addedAt;
-  int qty = 2;
+  int qty = 0;
 
   Product(
     this.id,
@@ -24,7 +24,7 @@ class Product {
     this.addedAt,
   );
 
-  factory Product.fromJson(Map<String, dynamic> json) {
+  factory Product.fromJson(dynamic json) {
     return Product(
       json['id'],
       json['name'],

@@ -11,12 +11,13 @@
   "sound": "Sound",
   "language": "Language",
   "information": "Information",
+  "privacy_and_policy": "Privacy & Policy",
   "logout": "Logout",
   "featured": "Featured",
   "trending": "Trending",
   "favourite": "Favourite",
   "new_": "New",
-  "most_recent": "Most recent",
+  "most_recent": "Recent",
   "shorts": "Shorts",
   "view_all": "View all",
   "whats_new": "What's New",
@@ -35,6 +36,9 @@
   "shipping_handling": "Shipping & Handling",
   "total": "Total",
   "checkout": "Checkout",
+  "cart_is_empty": "Cart is empty",
+  "added_to_cart_successfully": "Added to cart successfully",
+  "go_to_cart": "Go to cart",
   "username": "Username",
   "password": "Password",
   "forgot_password": "Forgot password?",
@@ -82,5 +86,7 @@
   "gifts": "Gifts",
   "people_you_may_know": "People you may know",
   "community": "Community",
-  "yours": "Yours"
+  "yours": "Yours",
+  "in_app_purchase_not_available": "In-app purchase is not available",
+  "caror_premium": "Caror Premium"
 }

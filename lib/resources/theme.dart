@@ -1,5 +1,5 @@
 import 'package:caror/data/shared_preferences.dart';
-import 'package:caror/generated/l10n.dart';
+import 'package:caror/resources/generated/l10n.dart';
 import 'package:caror/widget/progress_bar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -118,8 +118,6 @@ String getLanguageName(String code) {
       return '日本';
     case 'zh':
       return '中文';
-    case 'es':
-      return 'Español';
     default:
       return 'English';
   }
