@@ -6,10 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 
-class App {
-  static const ask = 'com.app.caror.caror.MainActivity';
-}
-
 class AppTheme {
   static const primaryColor = Color(0xFF363636);
   static const primarySwatch = MaterialColor(

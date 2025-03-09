@@ -47,7 +47,7 @@ class QrImagePage extends StatelessWidget {
         Container(
           alignment: Alignment.center,
           color: Colors.black,
-          child: QrImageView(
+          child: QrImage(
             size: Number.getScreenWidth(context) - 60,
             data: encryptId,
             padding: EdgeInsets.zero,

@@ -1,10 +1,10 @@
 import 'dart:math';
 
 import 'package:caror/resources/generated/l10n.dart';
+import 'package:caror/resources/util.dart';
 import 'package:caror/ui/image/image.dart';
 import 'package:caror/ui/product_detail/product_detail.dart';
 import 'package:flutter/material.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../../data/data_service.dart';
 import '../../entity/product.dart';
@@ -447,8 +447,7 @@ class _PostsItem extends StatelessWidget {
                 Icons.share_rounded,
                 padding: 8,
                 onPressed: () {
-                  Share.share(
-                      '${product.name}\n\n${product.description}\n\n${S.current.visit_caror_to_enjoy_now}');
+                  Util.shareProduct(product);
                 },
               ),
               Text(

@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:caror/data/data_service.dart';
 import 'package:caror/resources/generated/l10n.dart';
 import 'package:caror/resources/number.dart';
@@ -10,7 +8,6 @@ import 'package:caror/widget/widget.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:encrypt/encrypt.dart' as e;
 
 class ScanQRPage extends StatefulWidget {
   const ScanQRPage({Key? key}) : super(key: key);
@@ -87,7 +84,7 @@ class _ScanQRPageState extends State<ScanQRPage> {
               color: Colors.white,
               backgroundColor: const Color(0x4DFFFFFF),
               onPressed: () {
-                  _cameraController.toggleTorch();
+                _cameraController.toggleTorch();
               },
             ),
           ),
@@ -126,19 +123,18 @@ class _ScanQRPageState extends State<ScanQRPage> {
     }
   }
 
-  _decrypt(String? json) {
-    if (json != null) {
+  _decrypt(String? data) {
+    if (data != null) {
       try {
-        final inputs = jsonDecode(json);
-        final input = inputs['id'];
-        if (input != null) {
+        final uri = Uri.parse(data);
+        final paths = uri.pathSegments;
+        if (paths.length == 2) {
           _cameraController.pause();
-          final key = e.Key.fromUtf8(App.ask);
-          final iv = e.IV.fromBase64(inputs['iv']);
-          final encrypter = e.Encrypter(e.AES(key));
-          final productId = encrypter.decrypt(e.Encrypted.fromBase64(input), iv: iv);
-          _getProducts(productId);
-          return;
+          final productId = Util.decrypt(paths.last);
+          if (productId != null) {
+            _getProducts(productId);
+            return;
+          }
         }
       } on FormatException catch (e) {
         Util.log('Decrypt QR Code: $e', error: true);

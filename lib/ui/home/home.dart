@@ -1,15 +1,19 @@
+import 'dart:async';
 import 'dart:convert';
 
+import 'package:app_links/app_links.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:caror/data/data_service.dart';
 import 'package:caror/data/shared_preferences.dart';
 import 'package:caror/resources/generated/l10n.dart';
+import 'package:caror/resources/theme.dart';
 import 'package:caror/resources/util.dart';
 import 'package:caror/ui/home/tab_cart.dart';
 import 'package:caror/ui/home/tab_chat.dart';
 import 'package:caror/ui/home/tab_universe.dart';
 import 'package:caror/ui/home/tab_home.dart';
 import 'package:caror/ui/home/tab_setting.dart';
+import 'package:caror/ui/product_detail/product_detail.dart';
 import 'package:flutter/material.dart';
 
 enum LoginState { noLogin, loggingIn, loggedIn }
@@ -28,6 +32,7 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin 
   late LoginState loginState;
   bool isSound = false;
   AudioPlayer? _audioPlayer;
+  StreamSubscription? _appLinkSubscription;
 
   static HomePageState? of(BuildContext context) {
     return context.findAncestorStateOfType<HomePageState>();
@@ -60,6 +65,7 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin 
     _audioPlayer?.stop();
     _audioPlayer?.dispose();
     _tabController.dispose();
+    _appLinkSubscription?.cancel();
     super.dispose();
   }
 
@@ -84,7 +90,26 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin 
         });
       }
     }
+    _appLinkSubscription = AppLinks().uriLinkStream.listen((uri) {
+      final id = uri.queryParameters['pid'];
+      if (id != null && id.isNotEmpty) {
+        final productId = Util.decrypt(id);
+        if (productId != null) {
+          _getProducts(productId);
+        }
+      }
+    });
     super.initState();
+  }
+
+  _getProducts(String id) {
+    showLoading(context, message: S.current.loading_data);
+    DataService.getProductDetail(id).then((data) {
+      Navigator.pop(context);
+      if (data != null) {
+        Navigator.of(context).push(createRoute(ProductDetailPage(data)));
+      }
+    });
   }
 
   @override

@@ -10,28 +10,33 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  intl: ^0.19.0
-  http: ^0.13.4
-  shared_preferences: ^2.0.13
+  intl: 0.19.0
+  http: 0.13.6
+  shared_preferences: 2.3.3
   fluttertoast: 8.2.1
-  mobile_scanner: ^6.0.6
-  flutter_rating_bar: ^4.0.0
-  flutter_staggered_grid_view: ^0.4.1
-  encrypt: ^5.0.1
-  qr_flutter: ^4.0.0
-  webview_flutter: ^3.0.2
-  audioplayers: ^6.2.0
-  animations: ^2.0.2
-  android_intent_plus: ^3.1.1
-  flutter_native_splash: ^2.1.6
-  in_app_purchase: ^3.2.0
-  image_picker: ^1.1.2
-  share_plus: ^10.1.4
+  mobile_scanner: 6.0.6
+  flutter_rating_bar: 4.0.1
+  flutter_staggered_grid_view: 0.4.1
+  encrypt: 5.0.1
+  qr_flutter: 4.0.0
+  webview_flutter: 3.0.4
+  audioplayers: 6.3.0
+  animations: 2.0.2
+  android_intent_plus: 3.1.9
+  in_app_purchase: 3.2.0
+  image_picker: 1.1.2
+  share_plus: 10.1.4
+  app_links: 6.4.0
+
+dependency_overrides:
+  audioplayers_android: 5.0.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^1.0.0
+  flutter_lints: 4.0.0
+  flutter_launcher_icons: 0.14.1
+  flutter_native_splash: 2.4.1
 
 flutter:
   generate: true
@@ -49,3 +54,21 @@ flutter_intl:
   enabled: true
   arb_dir: lib/resources/l10n
   output_dir: lib/resources/generated
+
+#  dart run flutter_launcher_icons -f pubspec.yaml
+flutter_launcher_icons:
+  android: true
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/app_icon.png"
+  ios: true
+  image_path: "assets/app_icon.png"
+  image_path_ios: "assets/app_icon.png"
+  remove_alpha_ios: true
+
+#  dart run flutter_native_splash:create --path=pubspec.yaml
+#flutter_native_splash:
+#  color: "#000000"
+#  image: assets/app_icon.png
+#  android_12:
+#    color: "#000000"
+#    image: assets/app_icon.png

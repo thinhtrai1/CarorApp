@@ -3,14 +3,13 @@ import 'dart:math';
 import 'package:animations/animations.dart';
 import 'package:caror/data/shared_preferences.dart';
 import 'package:caror/resources/generated/l10n.dart';
+import 'package:caror/resources/util.dart';
 import 'package:caror/ui/chat/chat.dart';
 import 'package:caror/ui/image/image.dart';
 import 'package:caror/widget/widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:encrypt/encrypt.dart' as e;
-import 'package:share_plus/share_plus.dart';
 
 import '../../data/data_service.dart';
 import '../../entity/product.dart';
@@ -50,11 +49,7 @@ class _ProductDetailState extends State<ProductDetailPage> {
 
   @override
   void initState() {
-    final key = e.Key.fromUtf8(App.ask);
-    final iv = e.IV.fromLength(16);
-    final encrypter = e.Encrypter(e.AES(key));
-    final encrypted = encrypter.encrypt(widget._product.id.toString(), iv: iv);
-    _encryptQR = '{"id":"${encrypted.base64}", "iv": "${iv.base64}"}';
+    _encryptQR = DataService.getFullUrl('share/${Util.encrypt(widget._product.id)}');
     super.initState();
   }
 
@@ -275,8 +270,7 @@ class _ProductDetailState extends State<ProductDetailPage> {
                             const SelectionPopupIcon(Icons.favorite_border_rounded, padding: 16),
                             MaterialIconButton(Icons.chat_rounded, padding: 16, onPressed: () {}),
                             MaterialIconButton(Icons.share_rounded, padding: 16, onPressed: () {
-                              Share.share(
-                                  '${product.name}\n\n${product.description}\n\n${S.current.visit_caror_to_enjoy_now}');
+                              Util.shareProduct(product);
                             }),
                             const Spacer(),
                             MaterialIconButton(
@@ -491,7 +485,7 @@ class _CustomQrImage extends StatelessWidget {
       onTap: () {
         Navigator.of(context).push(createAnimateRoute(context, QrImagePage(encryptId: _encryptId)));
       },
-      child: QrImageView(
+      child: QrImage(
         data: _encryptId,
         padding: EdgeInsets.zero,
         size: 80,
